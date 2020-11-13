@@ -1,4 +1,4 @@
-from itertools import permutations
+from itertools import combinations, chain
 
 
 def list_to_numbers(string_list):
@@ -20,21 +20,28 @@ def get_adjacent_positions(pos, size):
 
 
 def exactly_one(variables):
-    clauses = [" ".join(str(x) for x in variables)]  # at least one
-    for x, y in permutations(variables, 2):
-        clauses.append(f"-{x} -{y}")
-    return "\n".join(clauses)
+    clauses = [tuple(variables)]  # at least one
+    # IMPROVEMENT: Combinations is better than permutations
+    clauses.extend([(-x, -y) for x, y in combinations(variables, 2)])
+    return clauses
+
+
+def implies_all(var, implied_vars):
+    return [(-var, implied_var) for implied_var in implied_vars]
 
 
 class TentGameEncoding:
     def __init__(self, size, tree_indices, row_limit, column_limit, verbose=True):
         self.size = size
+        self.capacity = size[0] * size[1]
         self.tree_indices = tree_indices
         self.tent_indices = []
         self.column_limit = column_limit
         self.row_limit = row_limit
-        self.position_to_id = {pos: idx for idx, pos in
-                               enumerate([(x, y) for x in range(size[0]) for y in range(size[1])])}
+        self.tent_pos_to_id = {pos: idx for idx, pos in
+                               enumerate([(x, y) for x in range(size[0]) for y in range(size[1])], 1)}
+        self.tree_pos_to_id = {pos: idx + self.capacity for idx, pos in
+                               enumerate([(x, y) for x in range(size[0]) for y in range(size[1])], 1)}
         if verbose:
             print("Created Tent with:")
             print(self.__dict__)
@@ -60,17 +67,21 @@ class TentGameEncoding:
     def combine_conditions(self):
         # TODO
         """Combine all conditions."""
-        pass
+        c_zero = self.condition_zero_clauses()
+        c_one = self.condition_one_clauses()
 
-    def condition_zero(self):
-        # TODO
-        """Tents must be placed in an empty cell."""
-        pass
+    def condition_zero_clauses(self):
+        """Tents must be placed in an empty cell.
+        In other words, no tent if there is a tree.
+        Thus, we iterate over all trees and assure that no tent can be in that field."""
+        return [(-self.tent_pos_to_id[pos], self.tree_pos_to_id[pos]) for pos in self.tree_indices]
 
-    def condition_one(self):
-        # TODO
-        """No two tents are adjacent in any of the (up to) 8 directions."""
-        pass
+    def condition_one_clauses(self):
+        """No two tents are adjacent in any of the (up to) 8 directions.
+        Thus, if tent there must not exist any further tent in adjacent positions."""
+        adj_pairs = [(pos, get_adjacent_positions(pos, self.size)) for pos in self.tent_pos_to_id.keys()]
+        return list(chain(*[implies_all(self.tent_pos_to_id[pos], map(self.tent_pos_to_id.get, adj))
+                            for pos, adj in adj_pairs]))
 
     def condition_two(self):
         # TODO
