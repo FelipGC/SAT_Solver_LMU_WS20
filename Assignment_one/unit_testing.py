@@ -31,9 +31,17 @@ class TestGame(unittest.TestCase):
         adj_3 = game.get_adjacent_positions((4, 4), (7, 7))
         sol_3 = {(3, 3), (3, 4), (3, 5), (4, 3), (4, 5), (5, 3), (5, 4), (5, 5)}
 
+        adj_4 = game.get_adjacent_positions((4, 4), (7, 7), orthogonal=True)
+        sol_4 = {(3, 4), (4, 3), (4, 5), (5, 4)}
+
+        adj_5 = game.get_adjacent_positions((4, 4), (7, 7), orthogonal=True)
+        sol_5 = {(3, 3), (3, 4), (3, 5), (4, 3), (4, 5), (5, 3), (5, 4), (5, 5)}
+
         self.assertSetEqual(adj_1, sol_1)
         self.assertSetEqual(adj_2, sol_2)
         self.assertSetEqual(adj_3, sol_3)
+        self.assertSetEqual(adj_4, sol_4)
+        self.assertNotEqual(adj_5, sol_5)
 
     def test_reproduce_field(self):
         # Test does not check if tents are modeled correctly.
@@ -78,26 +86,30 @@ class TestGame(unittest.TestCase):
 
     def test_pos_to_index(self):
         for index, g in enumerate(self.games):
-            self.assertEqual(len(g.tent_pos_to_id.values()), g.capacity)
-            self.assertEqual(len(g.tree_pos_to_id.values()), g.capacity)
+            self.assertLessEqual(len(g.tent_pos_to_id), g.capacity)
+            self.assertEqual(len(g.tree_pos_to_id), len(g.tree_positions))
 
-            self.assertEqual(max(g.tent_pos_to_id.values()), g.capacity)
-            self.assertEqual(max(g.tree_pos_to_id.values()), g.capacity * 2)
+            self.assertLessEqual(max(g.tent_pos_to_id.values()), g.capacity)
+            self.assertLessEqual(max(g.tree_pos_to_id.values()), g.capacity * 2)
+            self.assertGreater(min(g.tent_pos_to_id.values()), 0)
+            self.assertGreater(min(g.tree_pos_to_id.values()), g.capacity)
 
     def test_condition_zero_clauses(self):
         for index, g in enumerate(self.games):
             cond = g.condition_zero_clauses()
-            self.assertLessEqual(len(cond), g.capacity)
-            self.assertGreaterEqual(len(cond), len(g.tree_indices))
-            cond_ = [abs(abs(x) - abs(y)) == g.capacity for x, y in cond]
-            self.assertTrue(all(cond_))
+            # TODO: Complete test.
 
     def test_condition_one_clauses(self):
-        # TODO: Complete test
         for index, g in enumerate(self.games):
             cond = g.condition_one_clauses()
             self.assertLessEqual(len(cond), 8 * g.capacity)
-            self.assertGreaterEqual(len(cond), 3 * g.capacity)
+            # TODO: Complete test.
+
+    def test_condition_two_clauses(self):
+        for index, g in enumerate(self.games):
+            cond = g.condition_two_clauses()
+            # TODO: Complete test.
+            break  # Break out since it takes quite a while...
 
 
 if __name__ == "__main__":
