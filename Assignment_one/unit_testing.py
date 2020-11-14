@@ -2,7 +2,7 @@ import unittest
 from Assignment_one import game
 import glob
 
-from Assignment_one.game import exactly_one, implies_all
+from Assignment_one.game import exactly_one, implies_all, as_DIMACS_CNF, implies_all_multiple
 
 
 class TestGame(unittest.TestCase):
@@ -68,6 +68,23 @@ class TestGame(unittest.TestCase):
         valid_check_three = self.check_valid_matching(expression, variables3)
         self.assertTrue(valid_check_three)
 
+    def test_implies_all_multiple(self):
+        variable_length = 10
+        expression = implies_all_multiple([1, 2], [3, 4, 5])
+        variables = [False] * variable_length
+        variables[:5] = [True] * 5
+        valid_check_one = self.check_valid_matching(expression, variables)
+        self.assertTrue(valid_check_one)
+
+        variables2 = [False] * variable_length
+        valid_check_one2 = self.check_valid_matching(expression, variables2)
+        self.assertTrue(valid_check_one2)
+
+        variables3 = [False] * variable_length
+        variables3[:3] = [True] * 3
+        valid_check_one3 = self.check_valid_matching(expression, variables3)
+        self.assertFalse(valid_check_one3)
+
     def test_exactly_one(self):
         variable_length = 10
         expressions = exactly_one(list(range(1, variable_length + 1)))
@@ -108,6 +125,18 @@ class TestGame(unittest.TestCase):
     def test_condition_two_clauses(self):
         for index, g in enumerate(self.games):
             cond = g.condition_two_clauses()
+            # TODO: Complete test.
+            break  # Break out since it takes quite a while...
+
+    def test_condition_three_clauses(self):
+        for index, g in enumerate(self.games):
+            cond = g.condition_three_clauses()
+            # TODO: Complete test.
+
+    def test_as_DIMACS_CNF(self):
+        for index, g in enumerate(self.games):
+            cond = g.combine_conditions()
+            text = as_DIMACS_CNF(cond)
             # TODO: Complete test.
             break  # Break out since it takes quite a while...
 

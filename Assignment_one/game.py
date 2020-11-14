@@ -1,4 +1,15 @@
-from itertools import combinations, chain
+from itertools import combinations, chain, product
+
+from Assignment_one.sat_solver_interface import load_cnf_from_string, solve_cnf_with_CaDiCaL
+
+
+def as_DIMACS_CNF(clauses):
+    n_var = len({abs(x) for clause in clauses for x in clause})
+    n_clause = len(clauses)
+    clauses_text = "c Encoding\n" + f"p {n_var} {n_clause}\n"
+    clauses_ = [" ".join(str(x) for x in clause) for clause in clauses]
+    clauses_text += " 0\n".join(clauses_) + " 0"
+    return clauses_text
 
 
 def list_to_numbers(string_list):
@@ -9,7 +20,7 @@ def list_to_string(number_list):
     return " ".join(str(x) for x in number_list)
 
 
-def get_adjacent_positions(pos, size, remove_pos=True, restricted=None, orthogonal=False):
+def get_adjacent_positions(pos, size, remove_pos=True, restricted=None, complement=None, orthogonal=False):
     assert size[0] >= 1 and size[1] >= 1, "Field size can not be smaller than one for any dimension!"
     assert 0 <= pos[0] <= size[0] and 0 <= pos[1] <= size[1], "Position outside field size!"
     size = (size[0] - 1, size[1] - 1)
@@ -21,6 +32,9 @@ def get_adjacent_positions(pos, size, remove_pos=True, restricted=None, orthogon
         adj = set(filter(lambda x: x[0] == pos[0] or x[1] == pos[1], adj))
     if restricted:
         adj = set(filter(lambda x: x in restricted, adj))
+    if complement:
+        adj = set(filter(lambda x: x not in complement, adj))
+
     return adj
 
 
@@ -36,7 +50,7 @@ def implies_all(var: int, implied_vars):
 
 
 def implies_all_multiple(var: [int], implied_vars):
-    return [c for clause in [implies_all(v, implied_vars) for v in var] for c in clause]
+    return list(chain(*[implies_all(v, implied_vars) for v in var]))
 
 
 class TentGameEncoding:
@@ -57,9 +71,8 @@ class TentGameEncoding:
         # are at the same position :)
         tent_pos_to_id = {pos: idx for idx, pos in
                           enumerate([(x, y) for x in range(size[0]) for y in range(size[1])], 1)}
-        adjacent_to_trees = {pos for tree_pos in tree_positions
-                             for pos in get_adjacent_positions(tree_pos, size, orthogonal=True) if
-                             pos not in tree_positions}
+        adjacent_to_trees = {pos for tree_pos in tree_positions for pos in
+                             get_adjacent_positions(tree_pos, size, orthogonal=True, complement=tree_positions)}
         self.tent_pos_to_id = {pos: idx for pos, idx in tent_pos_to_id.items() if pos in adjacent_to_trees}
         if verbose:
             print("Created Tent with:")
@@ -71,12 +84,12 @@ class TentGameEncoding:
         with open(path, "r") as f:
             size = tuple(list_to_numbers(f.readline().split(" ")))
             lines = [line.replace("\n", "").split(" ") for line in f.readlines()]
-            row_limits, column_limits, tree_indices = list_to_numbers(lines.pop()), [], []
+            row_limits, column_limits, tree_indices = [], list_to_numbers(lines.pop()), []
             index_row = -1
             for line in lines:
                 index_row += 1
                 index_column = -1
-                column_limits.append(line.pop())
+                row_limits.append(line.pop())
                 for symbol in line[0]:
                     index_column += 1
                     if symbol == "T":
@@ -84,11 +97,24 @@ class TentGameEncoding:
 
             return cls(size, tree_indices, row_limits, column_limits, verbose=verbose)
 
+    def solve_sat_problem(self):
+        cnf_string = as_DIMACS_CNF(self.combine_conditions())
+        cnf = load_cnf_from_string(cnf_string)
+        solved, solution = solve_cnf_with_CaDiCaL(cnf)
+        assert solved
+        for tent_pos, tent_id in self.tent_pos_to_id.items():
+            if tent_id in solution:
+                self.tent_positions.append(tent_pos)
+
     def combine_conditions(self):
         # TODO
         """Combine all conditions."""
         # c_zero = self.condition_zero_clauses()
         c_one = self.condition_one_clauses()
+        c_two = self.condition_two_clauses()
+        c_three = self.condition_three_clauses()
+        clauses = c_one + c_two + c_three
+        return clauses
 
     def condition_zero_clauses(self):
         """Tents must be placed in an empty cell.
@@ -110,16 +136,19 @@ class TentGameEncoding:
                             for pos, adj in adj_pairs]))
 
     def condition_two_clauses(self):
-        # TODO: This method can scale really poorly (e.g at 25x30)!
-        #   Further optimization needed.
-        # Idea: (A and B) => C <-> (A => C) and (B => C)
+        # TODO: This method can scale really poorly! Further optimization needed.
         """The number of tents in each row/column matches the number specified."""
 
         def extend_clauses(var, limit):
-            # print(self.size, limit, len(list(combinations(var, limit))))
-            for valid_comb in combinations(var, limit):
-                c = implies_all_multiple(valid_comb, [v for v in var if v not in valid_comb])
-                clauses.extend(c)
+            """Binomial Encoding:
+            See: SAT Encodings of the At-Most-k Constraint, Some Old, Some New, Some Fast, Some Slow"""
+            # print(len(var), limit)
+            for comb in combinations(var, limit + 1):
+                c_less_than = [-v for v in comb]
+                clauses.append(c_less_than)
+            for comb in combinations(var, len(var) - limit + 1):
+                c_greater_than = [v for v in comb]
+                clauses.append(c_greater_than)
 
         clauses = []
         # Get possible valid combinations regarding rows.
@@ -133,12 +162,35 @@ class TentGameEncoding:
             extend_clauses(positions, column_limit)
         return clauses
 
-    def condition_three(self):
+    def condition_three_clauses(self):
         # TODO
         """It is possible to match tents to trees 1:1,
          such that each tree is orthogonally adjacent to its own tent
-        (but may also be adjacent to other tents)."""
-        pass
+        (but may also be adjacent to other tents).
+
+        NOTE: Due to pre-filtering we already ensured there exists at least one tree
+        orthogonally. Thus, it suffices to only further constraint 1:1 mappings."""
+
+        link_pairs = list(chain(
+            *[product([pos], get_adjacent_positions(pos, self.size, orthogonal=True, complement=self.tree_positions))
+              for pos in self.tree_positions]))
+        # Note, that tree_pos has already "+ self.capacity", thus we do not need "+ 2*capacity".
+        links = {(self.tree_pos_to_id[tree_pos],
+                  self.tent_pos_to_id[tent_pos]): self.tree_pos_to_id[tree_pos] + self.capacity
+                 for tree_pos, tent_pos in link_pairs}
+        # If Link(Tree,Tent) => Tree and Tent
+        clauses_link = [implies_all(link, [tree, tent]) for (tree, tent), link in links.items()]
+
+        # At most one link per tree
+        def links_to_tree(tree):
+            return set(filter(lambda x: x[0] == tree, links.keys()))
+
+        link_pairs = [links_to_tree(tree) for tree in self.tree_positions]
+        # Link_t1 => not Link_t2 and not Link_t3 ,...
+        clauses_mapping = [implies_all(link, [-x for x in pairs - {link}]) for pairs in link_pairs for link in pairs]
+
+        clauses = list(chain(*(clauses_link + clauses_mapping)))
+        return clauses
 
     def output_field(self):
         encoding = [list_to_string(self.size)]
@@ -151,9 +203,9 @@ class TentGameEncoding:
                     row.append("C")
                 else:
                     row.append(".")
-            row.append(" " + str(self.column_limits[r_index]))
+            row.append(" " + str(self.row_limits[r_index]))
             encoding.append("".join(row))
 
-        encoding.append(list_to_string(self.row_limits))
+        encoding.append(list_to_string(self.column_limits))
         encoding = "\n".join(encoding)
         return encoding
