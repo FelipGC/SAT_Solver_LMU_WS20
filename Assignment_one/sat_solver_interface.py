@@ -4,10 +4,6 @@ from pysat.formula import CNF
 """ Interface to the SAT solver."""
 
 
-def load_cnf_from_path(path):
-    return CNF(from_file=path)
-
-
 def load_cnf_from_string(string):
     return CNF(from_string=string)
 

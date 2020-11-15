@@ -1,4 +1,4 @@
-from itertools import combinations, chain, product
+from itertools import combinations, chain, product, count
 
 from Assignment_one.sat_solver_interface import load_cnf_from_string, solve_cnf_with_CaDiCaL
 
@@ -40,17 +40,17 @@ def get_adjacent_positions(pos, size, remove_pos=True, restricted=None, compleme
 
 def exactly_one(variables):
     clauses = [tuple(variables)]  # at least one
-    # IMPROVEMENT: Combinations is better than permutations
-    clauses.extend([(-x, -y) for x, y in combinations(variables, 2)])
+    clauses.extend(at_most_one(variables))  # exactly one
     return clauses
+
+
+def at_most_one(variables):
+    # IMPROVEMENT: Combinations is better than permutations
+    return [(-x, -y) for x, y in combinations(variables, 2)]
 
 
 def implies_all(var: int, implied_vars):
     return [(-var, implied_var) for implied_var in implied_vars]
-
-
-def implies_all_multiple(var: [int], implied_vars):
-    return list(chain(*[implies_all(v, implied_vars) for v in var]))
 
 
 class TentGameEncoding:
@@ -74,6 +74,7 @@ class TentGameEncoding:
         adjacent_to_trees = {pos for tree_pos in tree_positions for pos in
                              get_adjacent_positions(tree_pos, size, orthogonal=True, complement=tree_positions)}
         self.tent_pos_to_id = {pos: idx for pos, idx in tent_pos_to_id.items() if pos in adjacent_to_trees}
+        self.counter = count(self.capacity * 2)
         if verbose:
             print("Created Tent with:")
             print(self.__dict__)
@@ -164,32 +165,49 @@ class TentGameEncoding:
 
     def condition_three_clauses(self):
         # TODO
+
         """It is possible to match tents to trees 1:1,
          such that each tree is orthogonally adjacent to its own tent
         (but may also be adjacent to other tents).
 
         NOTE: Due to pre-filtering we already ensured there exists at least one tree
-        orthogonally. Thus, it suffices to only further constraint 1:1 mappings."""
+        orthogonally. Thus, it suffices to only further constrain 1:1 mappings."""
+        # Get links from adjacent trees to tent.
+        tents_to_trees = list(chain(*[
+            product([pos], get_adjacent_positions(pos, self.size, orthogonal=True, restricted=self.tree_positions))
+            for pos in self.tent_pos_to_id.keys()]))
+        # Get links from adjacent tents to tree.
+        trees_to_tents = list(chain(*[
+            product([pos],
+                    get_adjacent_positions(pos, self.size, orthogonal=True, restricted=self.tent_pos_to_id.keys()))
+            for pos in self.tree_positions]))
 
-        link_pairs = list(chain(
-            *[product([pos], get_adjacent_positions(pos, self.size, orthogonal=True, complement=self.tree_positions))
-              for pos in self.tree_positions]))
-        # Note, that tree_pos has already "+ self.capacity", thus we do not need "+ 2*capacity".
-        links = {(self.tree_pos_to_id[tree_pos],
-                  self.tent_pos_to_id[tent_pos]): self.tree_pos_to_id[tree_pos] + self.capacity
-                 for tree_pos, tent_pos in link_pairs}
+        # Order matters, i.e (Tree,Tent)!
+        trees_to_tents = {(self.tree_pos_to_id[tree_pos], self.tent_pos_to_id[tent_pos])
+                          for tree_pos, tent_pos in trees_to_tents}
+        tents_to_trees = {(self.tree_pos_to_id[tree_pos], self.tent_pos_to_id[tent_pos])
+                          for tent_pos, tree_pos in tents_to_trees}
+
+        link_pairs = trees_to_tents.union(tents_to_trees)
+
+        # Create new link "variables"
+        links = {(tree_id, tent_id): next(self.counter) for tree_id, tent_id in link_pairs}
         # If Link(Tree,Tent) => Tree and Tent
         clauses_link = [implies_all(link, [tree, tent]) for (tree, tent), link in links.items()]
 
+        # Exactly one link.
         # At most one link per tree
-        def links_to_tree(tree):
-            return set(filter(lambda x: x[0] == tree, links.keys()))
+        def links_to(token):
+            return [v for k, v in links.items() if token in k]
 
-        link_pairs = [links_to_tree(tree) for tree in self.tree_positions]
-        # Link_t1 => not Link_t2 and not Link_t3 ,...
-        clauses_mapping = [implies_all(link, [-x for x in pairs - {link}]) for pairs in link_pairs for link in pairs]
+        def links_to2(token):
+            return [(v, k) for k, v in links.items() if token in k]
 
-        clauses = list(chain(*(clauses_link + clauses_mapping)))
+        tree_unique = [exactly_one(links_to(tree)) for tree in self.tree_pos_to_id.values()]
+        tent_unique = [at_most_one(links_to(tent)) for tent in self.tent_pos_to_id.values()]
+        print([(links_to2(tent)) for tent in self.tent_pos_to_id.values()])
+        # Concatenate
+        clauses = list(chain(*(clauses_link + tree_unique + tent_unique)))
         return clauses
 
     def output_field(self):
