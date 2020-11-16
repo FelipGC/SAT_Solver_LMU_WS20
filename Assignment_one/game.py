@@ -1,6 +1,6 @@
 from itertools import combinations, chain, product, count
-
-from Assignment_one.sat_solver_interface import load_cnf_from_string, solve_cnf_with_CaDiCaL
+from pysat.solvers import Cadical
+from pysat.formula import CNF
 
 
 def as_DIMACS_CNF(clauses):
@@ -54,7 +54,7 @@ def implies_all(var: int, implied_vars):
 
 
 class TentGameEncoding:
-    def __init__(self, size, tree_positions, row_limits, column_limits, verbose=True):
+    def __init__(self, size, tree_positions, row_limits, column_limits, efficient=True, verbose=True):
         self.size = size
         self.capacity = size[0] * size[1]
         self.tree_positions = tree_positions
@@ -63,25 +63,32 @@ class TentGameEncoding:
         self.row_limits = list(map(int, row_limits))
         tree_pos_to_id = {pos: idx + self.capacity for idx, pos in
                           enumerate([(x, y) for x in range(size[0]) for y in range(size[1])], 1)}
-        # Filter out unnecessary variables.
-        self.tree_pos_to_id = {pos: idx for pos, idx in tree_pos_to_id.items() if pos in tree_positions}
-        # We now that: if tent => tree must be orthogonally adjacent.
-        # Further, also that a tent can not be at the same position as a tree!
-        # Thus we can filter out positions that have no orthogonal adjacent tree or
-        # are at the same position :)
-        tent_pos_to_id = {pos: idx for idx, pos in
-                          enumerate([(x, y) for x in range(size[0]) for y in range(size[1])], 1)}
-        adjacent_to_trees = {pos for tree_pos in tree_positions for pos in
-                             get_adjacent_positions(tree_pos, size, orthogonal=True, complement=tree_positions)}
-        self.tent_pos_to_id = {pos: idx for pos, idx in tent_pos_to_id.items() if pos in adjacent_to_trees}
+        if efficient:
+            # Filter out unnecessary variables.
+            self.tree_pos_to_id = {pos: idx for pos, idx in tree_pos_to_id.items() if pos in tree_positions}
+            # We now that: if tent => tree must be orthogonally adjacent.
+            # Further, also that a tent can not be at the same position as a tree!
+            # Thus we can filter out positions that have no orthogonal adjacent tree or
+            # are at the same position :)
+            tent_pos_to_id = {pos: idx for idx, pos in
+                              enumerate([(x, y) for x in range(size[0]) for y in range(size[1])], 1)}
+            adjacent_to_trees = {pos for tree_pos in tree_positions for pos in
+                                 get_adjacent_positions(tree_pos, size, orthogonal=True, complement=tree_positions)}
+            self.tent_pos_to_id = {pos: idx for pos, idx in tent_pos_to_id.items() if pos in adjacent_to_trees}
+        else:
+            # This is the unfiltered (inefficient) version
+            self.tree_pos_to_id = {pos: idx for pos, idx in tree_pos_to_id.items() if pos in tree_positions}
+            self.tent_pos_to_id = {pos: idx for idx, pos in
+                                   enumerate([(x, y) for x in range(size[0]) for y in range(size[1])], 1)}
         self.counter = count(self.capacity * 2)
         if verbose:
             print("Created Tent with:")
+            print("Efficient:", efficient)
             print(self.__dict__)
             print("Number of potential tent field variables:", len(self.tent_pos_to_id))
 
     @classmethod
-    def from_text(cls, path, verbose=True):
+    def from_text(cls, path, verbose=True, efficient=True):
         with open(path, "r") as f:
             size = tuple(list_to_numbers(f.readline().split(" ")))
             lines = [line.replace("\n", "").split(" ") for line in f.readlines()]
@@ -96,12 +103,12 @@ class TentGameEncoding:
                     if symbol == "T":
                         tree_indices.append((index_row, index_column))
 
-            return cls(size, tree_indices, row_limits, column_limits, verbose=verbose)
+            return cls(size, tree_indices, row_limits, column_limits, efficient=efficient, verbose=verbose)
 
     def solve_sat_problem(self):
         cnf_string = as_DIMACS_CNF(self.combine_conditions())
-        cnf = load_cnf_from_string(cnf_string)
-        solved, solution = solve_cnf_with_CaDiCaL(cnf)
+        solver = Cadical(CNF(from_string=cnf_string))
+        solved, solution = solver.solve(), solver.get_model()
         assert solved
         for tent_pos, tent_id in self.tent_pos_to_id.items():
             if tent_id in solution:
@@ -200,12 +207,8 @@ class TentGameEncoding:
         def links_to(token):
             return [v for k, v in links.items() if token in k]
 
-        def links_to2(token):
-            return [(v, k) for k, v in links.items() if token in k]
-
         tree_unique = [exactly_one(links_to(tree)) for tree in self.tree_pos_to_id.values()]
         tent_unique = [at_most_one(links_to(tent)) for tent in self.tent_pos_to_id.values()]
-        print([(links_to2(tent)) for tent in self.tent_pos_to_id.values()])
         # Concatenate
         clauses = list(chain(*(clauses_link + tree_unique + tent_unique)))
         return clauses

@@ -1,8 +1,12 @@
 import unittest
+
+from pysat.formula import CNF
+from pysat.solvers import Cadical
+
 from Assignment_one import game
 import glob
 
-from Assignment_one.game import exactly_one, implies_all, as_DIMACS_CNF, implies_all_multiple
+from Assignment_one.game import exactly_one, implies_all, as_DIMACS_CNF
 
 
 class TestGame(unittest.TestCase):
@@ -18,8 +22,8 @@ class TestGame(unittest.TestCase):
         return valid_term
 
     def setUp(self) -> None:
-        self.paths = glob.glob("tent-inputs\\*.txt")
-        self.games = [game.TentGameEncoding.from_text(path, verbose=False) for path in self.paths]
+        paths = glob.glob("tent-inputs\\*.txt")
+        self.games = [game.TentGameEncoding.from_text(path, verbose=False) for path in paths]
 
     def test_adjacent(self):
         adj_1 = game.get_adjacent_positions((0, 0), (8, 8))
@@ -94,34 +98,30 @@ class TestGame(unittest.TestCase):
             self.assertGreater(min(g.tent_pos_to_id.values()), 0)
             self.assertGreater(min(g.tree_pos_to_id.values()), g.capacity)
 
-    def test_condition_zero_clauses(self):
-        for index, g in enumerate(self.games):
-            cond = g.condition_zero_clauses()
-            # TODO: Complete test.
-
     def test_condition_one_clauses(self):
         for index, g in enumerate(self.games):
             cond = g.condition_one_clauses()
             self.assertLessEqual(len(cond), 8 * g.capacity)
-            # TODO: Complete test.
+            solver = Cadical(CNF(from_string=as_DIMACS_CNF(cond)))
+            self.assertTrue(solver.solve())
 
     def test_condition_two_clauses(self):
         for index, g in enumerate(self.games):
             cond = g.condition_two_clauses()
-            # TODO: Complete test.
-            break  # Break out since it takes quite a while...
+            solver = Cadical(CNF(from_string=as_DIMACS_CNF(cond)))
+            self.assertTrue(solver.solve())
 
     def test_condition_three_clauses(self):
         for index, g in enumerate(self.games):
             cond = g.condition_three_clauses()
-            # TODO: Complete test.
+            solver = Cadical(CNF(from_string=as_DIMACS_CNF(cond)))
+            self.assertTrue(solver.solve())
 
     def test_as_DIMACS_CNF(self):
         for index, g in enumerate(self.games):
             cond = g.combine_conditions()
-            text = as_DIMACS_CNF(cond)
-            # TODO: Complete test.
-            break  # Break out since it takes quite a while...
+            solver = Cadical(CNF(from_string=as_DIMACS_CNF(cond)))
+            self.assertTrue(solver.solve())
 
 
 if __name__ == "__main__":
