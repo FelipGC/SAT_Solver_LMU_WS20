@@ -10,6 +10,16 @@ import datetime
 from Assignment_one import game
 
 
+def combine_analysis_reports():
+    paths = glob.glob("data\\*.csv")
+    df = pd.concat([pd.read_csv(path) for path in paths], ignore_index=True)
+    sns.lineplot(data=df, x="Capacity", y="Variables", hue="Algorithm")
+    plt.show()
+    ax = sns.lineplot(data=df, x="Capacity", y="Literals", hue="Algorithm")
+    ax.set(yscale="log")
+    plt.show()
+
+
 class PerformanceAnalysis:
     def __init__(self):
         print("Creating and solving multiple games, this might take a while...")
@@ -31,14 +41,10 @@ class PerformanceAnalysis:
         df.Literals = df.Literals.astype(int)
         df.Variables = df.Variables.astype(int)
         time_id = datetime.datetime.now().strftime('%m-%d_%H-%M-%S')
-        df.to_csv(f"data\\performance_analysis_{time_id}", index=False)
+        df.to_csv(f"data\\performance_analysis_{time_id}.csv", index=False)
         print("Saved data-frame as csv.")
-        sns.lineplot(data=df, x="Capacity", y="Variables", hue="Algorithm")
-        plt.show()
-        ax = sns.lineplot(data=df, x="Capacity", y="Literals", hue="Algorithm")
-        ax.set(yscale="log")
-        plt.show()
 
 
 pa = PerformanceAnalysis()
 pa.plot_metrics()
+combine_analysis_reports()

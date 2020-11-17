@@ -22,8 +22,8 @@ class TestGame(unittest.TestCase):
         return valid_term
 
     def setUp(self) -> None:
-        paths = glob.glob("tent-inputs\\*.txt")
-        self.games = [game.TentGameEncoding.from_text(path, verbose=False) for path in paths]
+        self.paths = glob.glob("tent-inputs\\*.txt")
+        self.games = [game.TentGameEncoding.from_text(path, verbose=False) for path in self.paths]
 
     def test_adjacent(self):
         adj_1 = game.get_adjacent_positions((0, 0), (8, 8))
@@ -97,6 +97,13 @@ class TestGame(unittest.TestCase):
             self.assertLessEqual(max(g.tree_pos_to_id.values()), g.capacity * 2)
             self.assertGreater(min(g.tent_pos_to_id.values()), 0)
             self.assertGreater(min(g.tree_pos_to_id.values()), g.capacity)
+
+    def test_condition_zero_clauses(self):
+        for index, g in enumerate(self.games):
+            cond = g.condition_zero_clauses()
+            if cond:
+                solver = Cadical(CNF(from_string=as_DIMACS_CNF(cond)))
+                self.assertTrue(solver.solve())
 
     def test_condition_one_clauses(self):
         for index, g in enumerate(self.games):
