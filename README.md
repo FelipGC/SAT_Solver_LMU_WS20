@@ -13,23 +13,23 @@ from Assignment_one.game import TentGameEncoding
 path = "...\\...\\..."
 game_from_text = TentGameEncoding.from_text_file(path)
 
-#To read a game-field directly via a game-id
+#To read a game-field directly via a game-id:
 game_id = "...x..:....,...,...,.."
 game_from_id = TentGameEncoding.from_game_id(game_id)
 
-# To generate a random game-field
+# To generate a random game-field:
 game_random = TentGameEncoding.from_randomness(size=(8,8), tree_density=0.5).
 ```
 ##### `Solving the game-field.`
 
  ```python
 from Assignment_one.game import TentGameEncoding
-# Create a game-field
+# Create a game-field:
 game = TentGameEncoding.from_...
-# Print the unsolved game-field
+# Print the unsolved game-field:
 print(game.output_field())
-# Solve the game-field
+# Solve the game-field:
 game.solve_sat_problem()
-# Print the solved game-field
+# Print the solved game-field:
 print(game.output_field())
 ```
