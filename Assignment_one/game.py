@@ -62,6 +62,7 @@ class TentGameEncoding:
         self.tent_positions = []
         self.column_limits = list(map(int, column_limits))
         self.row_limits = list(map(int, row_limits))
+        self.cnf_solution = None
         tree_pos_to_id = {pos: idx + self.capacity for idx, pos in
                           enumerate([(x, y) for x in range(size[0]) for y in range(size[1])], 1)}
         if efficient:
@@ -153,21 +154,23 @@ class TentGameEncoding:
         self.solve_sat_problem()
 
     def solve_sat_problem(self):
-        solved, solution = self.get_solution(self.combine_conditions())
+        solved, solution = self.get_solution(self.get_cnf_solution())
         assert solved
         for tent_pos, tent_id in self.tent_pos_to_id.items():
             if tent_id in solution:
                 self.tent_positions.append(tent_pos)
 
-    def combine_conditions(self):
+    def get_cnf_solution(self):
         # TODO
-        """Combine all conditions."""
-        # c_zero = self.condition_zero_clauses()
-        c_one = self.condition_one_clauses()
-        c_two = self.condition_two_clauses()
-        c_three = self.condition_three_clauses()
-        clauses = c_one + c_two + c_three
-        return clauses
+        if not self.cnf_solution:
+            """Combine all conditions."""
+            # c_zero = self.condition_zero_clauses()
+            c_one = self.condition_one_clauses()
+            c_two = self.condition_two_clauses()
+            c_three = self.condition_three_clauses()
+            clauses = c_one + c_two + c_three
+            self.cnf_solution = clauses
+        return self.cnf_solution
 
     def condition_zero_clauses(self):
         """Tents must be placed in an empty cell.

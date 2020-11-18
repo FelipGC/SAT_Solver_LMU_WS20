@@ -126,7 +126,7 @@ class TestGame(unittest.TestCase):
 
     def test_as_DIMACS_CNF(self):
         for index, g in enumerate(self.games):
-            cond = g.combine_conditions()
+            cond = g.get_cnf_solution()
             solver = Cadical(CNF(from_string=as_DIMACS_CNF(cond)))
             self.assertTrue(solver.solve())
 
