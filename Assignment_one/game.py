@@ -93,6 +93,15 @@ class TentGameEncoding:
         return cls(size, tree_indices, row_limits=[], column_limits=[])
 
     @classmethod
+    def from_game_id(cls, game_id, verbose=True, efficient=True):
+        from Assignment_one import parse_gameid
+        game_text = parse_gameid.parse_id(game_id)
+        path = 'data\\game_file.txt'
+        with open(path, 'w') as f:
+            f.write(game_text)
+        return cls.from_text(path, verbose, efficient)
+
+    @classmethod
     def from_text(cls, path, verbose=True, efficient=True):
         with open(path, "r") as f:
             size = tuple(list_to_numbers(f.readline().split(" ")))
