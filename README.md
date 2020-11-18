@@ -1,6 +1,6 @@
 # LMU SAT-Solving WS2020/21
 
-##Assignment 1: 
+## Assignment 1: 
 ##### Goal:
 Building a solver for the puzzle **_Tents_** by encoding it as a SAT problem.
 ##### Instructions:
