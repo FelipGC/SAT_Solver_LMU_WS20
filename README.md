@@ -25,7 +25,7 @@ game_random = TentGameEncoding.from_randomness(size=(8,8), tree_density=0.5).
  ```python
 from Assignment_one.game import TentGameEncoding
 # Create a game-field
-game = TentGameEncoding.from_..
+game = TentGameEncoding.from_...
 # Print the unsolved game-field
 print(game.output_field())
 # Solve the game-field
