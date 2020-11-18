@@ -25,7 +25,7 @@ class PerformanceAnalysis:
         print("Creating and solving multiple games, this might take a while...")
         paths = glob.glob("tent-inputs\\*.txt")
         self.efficient = True
-        self.games = [game.TentGameEncoding.from_text(path, efficient=self.efficient, verbose=False) for path in paths]
+        self.games = [game.TentGameEncoding.from_text_file(path, efficient=self.efficient, verbose=False) for path in paths]
         self.games_cnf = [g.combine_conditions() for g in self.games]
 
     def plot_metrics(self):

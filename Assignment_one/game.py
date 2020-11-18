@@ -99,10 +99,10 @@ class TentGameEncoding:
         path = 'data\\game_file.txt'
         with open(path, 'w') as f:
             f.write(game_text)
-        return cls.from_text(path, verbose, efficient)
+        return cls.from_text_file(path, verbose, efficient)
 
     @classmethod
-    def from_text(cls, path, verbose=True, efficient=True):
+    def from_text_file(cls, path, verbose=True, efficient=True):
         with open(path, "r") as f:
             size = tuple(list_to_numbers(f.readline().split(" ")))
             lines = [line.replace("\n", "").split(" ") for line in f.readlines()]

@@ -23,7 +23,7 @@ class TestGame(unittest.TestCase):
 
     def setUp(self) -> None:
         self.paths = glob.glob("tent-inputs\\*.txt")
-        self.games = [game.TentGameEncoding.from_text(path, verbose=False) for path in self.paths]
+        self.games = [game.TentGameEncoding.from_text_file(path, verbose=False) for path in self.paths]
 
     def test_adjacent(self):
         adj_1 = game.get_adjacent_positions((0, 0), (8, 8))
