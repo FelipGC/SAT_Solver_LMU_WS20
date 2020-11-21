@@ -3,6 +3,12 @@
 ## Assignment 1: 
 ##### Goal:
 Building a solver for the puzzle **_Tents_** by encoding it as a SAT problem.
+### Tasks
+
+- [x] Task 1 (Compulsory)
+- [ ] Task 2 (Bonus)
+- [x] Task 3 (Bonus)
+- [ ] Task 4 (Bonus)
 ##### Instructions:
 File "game.py" contains methods to read and solve game-fields.
 

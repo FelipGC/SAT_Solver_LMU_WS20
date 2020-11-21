@@ -130,6 +130,11 @@ class TestGame(unittest.TestCase):
             solver = Cadical(CNF(from_string=as_DIMACS_CNF(cond)))
             self.assertTrue(solver.solve())
 
+    def test_check_solution(self):
+        for index, g in enumerate(self.games):
+            g.solve_sat_problem()
+            self.assertTrue(g.check_solution(g.tent_positions))
+
 
 if __name__ == "__main__":
     unittest.main()

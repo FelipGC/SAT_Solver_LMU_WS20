@@ -135,6 +135,16 @@ class TentGameEncoding:
         solved, solution = solver.solve(), solver.get_model()
         return solved, solution
 
+    def check_solution(self, solution):
+        """ Input: Positions (x,y) of tents.
+            Output: Whether it is valid?"""
+        tent_ids = [self.tent_pos_to_id.get(tent_pos, None) for tent_pos in solution]
+        if not solution or None in tent_ids:
+            return False
+        cnf = self.get_cnf_solution() + [[tent_id] for tent_id in tent_ids]
+        valid_solution, _ = self.get_solution(cnf)
+        return valid_solution
+
     def reduce_to_possible_solution(self):
         solved, solution = False, None
         while not solved and self.tree_positions:
