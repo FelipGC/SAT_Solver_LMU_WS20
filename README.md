@@ -6,7 +6,7 @@ Building a solver for the puzzle **_Tents_** by encoding it as a SAT problem.
 ### Tasks
 
 - [x] Task 1 (Compulsory)
-- [ ] Task 2 (Bonus)
+- [X] Task 2 (Bonus)
 - [x] Task 3 (Bonus)
 - [ ] Task 4 (Bonus)
 ##### Instructions:
@@ -59,4 +59,21 @@ game = TentGameEncoding.from_...
 cnf = game.get_cnf_solution()
 # Transform and print it in DIMACS format:
 print(as_DIMACS_CNF(cnf))
+```
+
+##### `Comparing algorithms:`
+
+ ```python
+from Assignment_one.performance import PerformanceAnalysis, combine_analysis_reports
+
+# Analyse the efficient algorithm.
+p = PerformanceAnalysis(efficient=True)
+# Store as csv. file.
+p.store_metrics()
+# Analyse the inefficient algorithm.
+p2 = PerformanceAnalysis(efficient=False)
+# Store as csv. file.
+p2.store_metrics()
+# Load the files and plot their differences.
+combine_analysis_reports()
 ```

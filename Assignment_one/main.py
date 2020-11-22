@@ -1,5 +1,5 @@
 from Assignment_one.game import TentGameEncoding
-from Assignment_one.performance import print_encoding_details
+from Assignment_one.performance import print_encoding_details, combine_analysis_reports
 
 t = TentGameEncoding.from_text_file("tent-inputs\\tents-8x8-e1.txt")
 t.solve_sat_problem()
