@@ -25,6 +25,12 @@ class TestGame(unittest.TestCase):
         self.paths = glob.glob("tent-inputs\\*.txt")
         self.games = [game.TentGameEncoding.from_text_file(path, verbose=False) for path in self.paths]
 
+    def test_randomness(self):
+        g1 = game.TentGameEncoding.from_randomness()
+        g1.solve_sat_problem()
+        solved, _ = g1.get_solution(g1.get_cnf_solution())
+        self.assertTrue(solved)
+
     def test_adjacent(self):
         adj_1 = game.get_adjacent_positions((0, 0), (8, 8))
         sol_1 = {(0, 1), (1, 0), (1, 1)}

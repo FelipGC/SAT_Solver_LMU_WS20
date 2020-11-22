@@ -3,12 +3,7 @@
 ## Assignment 1: 
 ##### Goal:
 Building a solver for the puzzle **_Tents_** by encoding it as a SAT problem.
-### Tasks
 
-- [x] Task 1 (Compulsory)
-- [X] Task 2 (Bonus)
-- [x] Task 3 (Bonus)
-- [ ] Task 4 (Bonus)
 ##### Instructions:
 File "game.py" contains methods to read and solve game-fields.
 
@@ -43,11 +38,13 @@ print(game.output_field())
 ##### `Analysing the game-encoding:`
 
  ```python
-from Assignment_one.performance import print_encoding_details
+from Assignment_one.performance import print_encoding_details, get_encoding_details
 # Create a game-field:
 game = TentGameEncoding.from_...
 # Print the number of variables, clauses and literals:
 print_encoding_details(game)
+# Get individual values
+variables_n, literals_n, clauses_n = get_encoding_details(game)
 ```
 ##### `Printing the CNF as DIMACS_CNF:`
 
@@ -60,18 +57,28 @@ cnf = game.get_cnf_solution()
 # Transform and print it in DIMACS format:
 print(as_DIMACS_CNF(cnf))
 ```
-
-##### `Comparing algorithms:`
+##### `Comparing algorithms [sat-solvers]:`
 
  ```python
-from Assignment_one.performance import PerformanceAnalysis, combine_analysis_reports
+from Assignment_one.performance import analyse_sat_solvers
+
+g1 = TentGameEncoding.from_text_file("tent-inputs\\tents-10x10-t1.txt", algo_name="Efficient")
+g2 = TentGameEncoding.from_text_file("tent-inputs\\tents-10x10-t1.txt", efficient=False, algo_name="Inefficient")
+# Compare different SAT sovlers and store the result as a png. file.
+analyse_sat_solvers([g1, g2])
+```
+
+##### `Comparing algorithms [encodings]:`
+
+ ```python
+from Assignment_one.performance import EncodingPerformanceAnalysis, combine_analysis_reports
 
 # Analyse the efficient algorithm.
-p = PerformanceAnalysis(efficient=True)
+p = EncodingPerformanceAnalysis(efficient=True)
 # Store as csv. file.
 p.store_metrics()
 # Analyse the inefficient algorithm.
-p2 = PerformanceAnalysis(efficient=False)
+p2 = EncodingPerformanceAnalysis(efficient=False)
 # Store as csv. file.
 p2.store_metrics()
 # Load the files and plot their differences.

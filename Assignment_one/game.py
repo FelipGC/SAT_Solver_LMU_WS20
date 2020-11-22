@@ -55,7 +55,9 @@ def implies_all(var: int, implied_vars):
 
 
 class TentGameEncoding:
-    def __init__(self, size, tree_positions, row_limits, column_limits, efficient=True, verbose=True):
+    def __init__(self, size, tree_positions, row_limits, column_limits, efficient=True, verbose=True,
+                 algo_name="Default"):
+        self.algo_name = algo_name
         self.size = size
         self.capacity = size[0] * size[1]
         self.tree_positions = tree_positions
@@ -88,22 +90,24 @@ class TentGameEncoding:
             print("Number of potential tent field variables:", len(self.tent_pos_to_id))
 
     @classmethod
-    def from_randomness(cls, size=(8, 8), tree_density=0.5):
+    def from_randomness(cls, size=(8, 8), tree_density=0.5, algo_name="Default"):
         d = int(tree_density * size[0] * size[1])
         tree_indices = list(set((np.random.randint(size[0]), np.random.randint(size[1])) for _ in range(d)))
-        return cls(size, tree_indices, row_limits=[], column_limits=[])
+        game = cls(size, tree_indices, row_limits=[], column_limits=[], verbose=False, algo_name=algo_name)
+        game.reduce_to_possible_solution()
+        return game
 
     @classmethod
-    def from_game_id(cls, game_id, verbose=True, efficient=True):
+    def from_game_id(cls, game_id, verbose=True, efficient=True, algo_name="Default"):
         from Assignment_one import parse_gameid
         game_text = parse_gameid.parse_id(game_id)
         path = 'data\\game_file.txt'
         with open(path, 'w') as f:
             f.write(game_text)
-        return cls.from_text_file(path, verbose, efficient)
+        return cls.from_text_file(path, verbose, efficient, algo_name=algo_name)
 
     @classmethod
-    def from_text_file(cls, path, verbose=True, efficient=True):
+    def from_text_file(cls, path, verbose=True, efficient=True, algo_name="Default"):
         with open(path, "r") as f:
             size = tuple(list_to_numbers(f.readline().split(" ")))
             lines = [line.replace("\n", "").split(" ") for line in f.readlines()]
@@ -118,7 +122,8 @@ class TentGameEncoding:
                     if symbol == "T":
                         tree_indices.append((index_row, index_column))
 
-            return cls(size, tree_indices, row_limits, column_limits, verbose=verbose, efficient=efficient)
+            return cls(size, tree_indices, row_limits, column_limits, verbose=verbose, efficient=efficient,
+                       algo_name=algo_name)
 
     def filter_tent_positions(self):
         tent_pos_to_id = {pos: idx for idx, pos in
@@ -171,7 +176,6 @@ class TentGameEncoding:
                 self.tent_positions.append(tent_pos)
 
     def get_cnf_solution(self):
-        # TODO
         if not self.cnf_solution:
             """Combine all conditions."""
             # c_zero = self.condition_zero_clauses()
@@ -179,7 +183,8 @@ class TentGameEncoding:
             c_two = self.condition_two_clauses()
             c_three = self.condition_three_clauses()
             clauses = c_one + c_two + c_three
-            self.cnf_solution = clauses
+            # Remove duplicates.
+            self.cnf_solution = [list(c) for c in set(frozenset(c) for c in clauses)]
         return self.cnf_solution
 
     def condition_zero_clauses(self):
