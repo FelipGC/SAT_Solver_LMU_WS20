@@ -10,7 +10,7 @@ import datetime
 from pysat.formula import CNF
 
 from Assignment_one import game
-from Assignment_one.game import TentGameEncoding, as_DIMACS_CNF
+from Assignment_one.game import GameEncoder, as_DIMACS_CNF
 
 
 def combine_analysis_reports():
@@ -23,7 +23,7 @@ def combine_analysis_reports():
     plt.show()
 
 
-def get_encoding_details(g: TentGameEncoding):
+def get_encoding_details(g: GameEncoder):
     cnf = g.get_cnf_solution()
     literals = list(chain(*cnf))
     literals_n = len(literals)
@@ -32,7 +32,7 @@ def get_encoding_details(g: TentGameEncoding):
     return variables_n, literals_n, clauses_n
 
 
-def print_encoding_details(g: TentGameEncoding):
+def print_encoding_details(g: GameEncoder):
     variables_n, literals_n, clauses_n = get_encoding_details(g)
     print("\n" + "-" * 30)
     print("Game size:", g.size)
@@ -42,7 +42,7 @@ def print_encoding_details(g: TentGameEncoding):
     print("-" * 30)
 
 
-def analyse_sat_solvers(games: [TentGameEncoding]):
+def analyse_sat_solvers(games: [GameEncoder]):
     from timeit import default_timer as timer
     from pysat.solvers import Cadical, Glucose4, Lingeling, Minisat22, Maplesat
     df = pd.DataFrame(columns=["Solver", "Execution time [sec]", "Algorithm"])
@@ -60,7 +60,7 @@ def analyse_sat_solvers(games: [TentGameEncoding]):
                            ignore_index=True)
     df.to_csv("data\\solver_analysis.csv", index=False)
     print("Saved data-frame as csv.")
-    bar_plot = sns.barplot(x="Solver", y="Execution time [sec]", hue="Algorithm", data=df)
+    sns.barplot(x="Solver", y="Execution time [sec]", hue="Algorithm", data=df)
     plt.savefig("data\\solver_performance_analysis.png")
 
     class EncodingPerformanceAnalysis:
@@ -68,7 +68,7 @@ def analyse_sat_solvers(games: [TentGameEncoding]):
             print(f"EFFICIENT={efficient}: Creating and solving multiple games, this might take a while...")
             paths = glob.glob("tent-inputs\\*.txt")
             self.efficient = efficient
-            self.games = [game.TentGameEncoding.from_text_file(path, efficient=self.efficient, verbose=False) for path
+            self.games = [game.GameEncoderBinomial.from_text_file(path, efficient=self.efficient, verbose=False) for path
                           in
                           paths]
             self.games_cnf = [g.get_cnf_solution() for g in self.games]

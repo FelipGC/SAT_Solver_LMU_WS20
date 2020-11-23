@@ -2,6 +2,7 @@ from itertools import combinations, chain, product, count
 from pysat.solvers import Cadical
 from pysat.formula import CNF
 import numpy as np
+from abc import ABC, abstractmethod
 
 
 def as_DIMACS_CNF(clauses):
@@ -54,10 +55,10 @@ def implies_all(var: int, implied_vars):
     return [(-var, implied_var) for implied_var in implied_vars]
 
 
-class TentGameEncoding:
+class GameEncoder(ABC):
     def __init__(self, size, tree_positions, row_limits, column_limits, efficient=True, verbose=True,
                  algo_name="Default"):
-        self.algo_name = algo_name
+        self.algo_name = algo_name + " [Efficient]" if efficient else ""
         self.size = size
         self.capacity = size[0] * size[1]
         self.tree_positions = tree_positions
@@ -65,9 +66,10 @@ class TentGameEncoding:
         self.column_limits = list(map(int, column_limits))
         self.row_limits = list(map(int, row_limits))
         self.cnf_solution = None
+        self.efficient = efficient
         tree_pos_to_id = {pos: idx + self.capacity for idx, pos in
                           enumerate([(x, y) for x in range(size[0]) for y in range(size[1])], 1)}
-        if efficient:
+        if self.efficient:
             # Filter out unnecessary variables.
             self.tree_pos_to_id = {pos: idx for pos, idx in tree_pos_to_id.items() if pos in tree_positions}
             # We now that: if tent => tree must be orthogonally adjacent.
@@ -90,24 +92,24 @@ class TentGameEncoding:
             print("Number of potential tent field variables:", len(self.tent_pos_to_id))
 
     @classmethod
-    def from_randomness(cls, size=(8, 8), tree_density=0.5, algo_name="Default"):
+    def from_randomness(cls, size=(8, 8), tree_density=0.5):
         d = int(tree_density * size[0] * size[1])
         tree_indices = list(set((np.random.randint(size[0]), np.random.randint(size[1])) for _ in range(d)))
-        game = cls(size, tree_indices, row_limits=[], column_limits=[], verbose=False, algo_name=algo_name)
+        game = cls(size, tree_indices, row_limits=[], column_limits=[], verbose=False)
         game.reduce_to_possible_solution()
         return game
 
     @classmethod
-    def from_game_id(cls, game_id, verbose=True, efficient=True, algo_name="Default"):
+    def from_game_id(cls, game_id, verbose=True, efficient=True):
         from Assignment_one import parse_gameid
         game_text = parse_gameid.parse_id(game_id)
         path = 'data\\game_file.txt'
         with open(path, 'w') as f:
             f.write(game_text)
-        return cls.from_text_file(path, verbose, efficient, algo_name=algo_name)
+        return cls.from_text_file(path, verbose, efficient)
 
     @classmethod
-    def from_text_file(cls, path, verbose=True, efficient=True, algo_name="Default"):
+    def from_text_file(cls, path, verbose=True, efficient=True):
         with open(path, "r") as f:
             size = tuple(list_to_numbers(f.readline().split(" ")))
             lines = [line.replace("\n", "").split(" ") for line in f.readlines()]
@@ -122,8 +124,7 @@ class TentGameEncoding:
                     if symbol == "T":
                         tree_indices.append((index_row, index_column))
 
-            return cls(size, tree_indices, row_limits, column_limits, verbose=verbose, efficient=efficient,
-                       algo_name=algo_name)
+            return cls(size, tree_indices, row_limits, column_limits, verbose=verbose, efficient=efficient)
 
     def filter_tent_positions(self):
         tent_pos_to_id = {pos: idx for idx, pos in
@@ -178,11 +179,13 @@ class TentGameEncoding:
     def get_cnf_solution(self):
         if not self.cnf_solution:
             """Combine all conditions."""
-            # c_zero = self.condition_zero_clauses()
+            c_zero = []
+            if not self.efficient:
+                c_zero = self.condition_zero_clauses()
             c_one = self.condition_one_clauses()
             c_two = self.condition_two_clauses()
             c_three = self.condition_three_clauses()
-            clauses = c_one + c_two + c_three
+            clauses = c_zero + c_one + c_two + c_three
             # Remove duplicates.
             self.cnf_solution = [list(c) for c in set(frozenset(c) for c in clauses)]
         return self.cnf_solution
@@ -207,35 +210,24 @@ class TentGameEncoding:
                             for pos, adj in adj_pairs]))
 
     def condition_two_clauses(self):
-        # TODO: This method can scale really poorly! Further optimization needed.
         """The number of tents in each row/column matches the number specified."""
-
-        def extend_clauses(var, limit):
-            """Binomial Encoding:
-            See: SAT Encodings of the At-Most-k Constraint, Some Old, Some New, Some Fast, Some Slow"""
-            # print(len(var), limit)
-            for comb in combinations(var, limit + 1):
-                c_less_than = [-v for v in comb]
-                clauses.append(c_less_than)
-            for comb in combinations(var, len(var) - limit + 1):
-                c_greater_than = [v for v in comb]
-                clauses.append(c_greater_than)
-
         clauses = []
         # Get possible valid combinations regarding rows.
         for index, row_limit in enumerate(self.row_limits):
             positions = [var for pos, var in self.tent_pos_to_id.items() if pos[0] == index]
-            extend_clauses(positions, row_limit)
+            clauses += self.exactly_k_of_n(positions, row_limit)
 
         # Get possible valid combinations regarding columns.
         for index, column_limit in enumerate(self.column_limits):
             positions = [var for pos, var in self.tent_pos_to_id.items() if pos[1] == index]
-            extend_clauses(positions, column_limit)
+            clauses += self.exactly_k_of_n(positions, column_limit)
         return clauses
 
-    def condition_three_clauses(self):
-        # TODO
+    @abstractmethod
+    def exactly_k_of_n(self, var, limit):
+        pass
 
+    def condition_three_clauses(self):
         """It is possible to match tents to trees 1:1,
          such that each tree is orthogonally adjacent to its own tent
         (but may also be adjacent to other tents).
@@ -296,3 +288,51 @@ class TentGameEncoding:
         encoding.append(list_to_string(self.column_limits))
         encoding = "\n".join(encoding)
         return encoding
+
+
+""" Include here different algorithms."""
+
+
+class GameEncoderBinomial(GameEncoder):
+    def __init__(self, size, tree_positions, row_limits, column_limits, efficient=True, verbose=True):
+        super().__init__(size, tree_positions, row_limits, column_limits, efficient=efficient, verbose=verbose,
+                         algo_name="Binomial")
+
+    def exactly_k_of_n(self, var, limit):
+        """Binomial Encoding:
+        See: SAT Encodings of the At-Most-k Constraint, Some Old, Some New, Some Fast, Some Slow"""
+        clauses = []
+        for comb in combinations(var, limit + 1):
+            c_less_than = [-v for v in comb]
+            clauses.append(c_less_than)
+        for comb in combinations(var, len(var) - limit + 1):
+            c_greater_than = [v for v in comb]
+            clauses.append(c_greater_than)
+        return clauses
+
+
+class GameEncoderSequential(GameEncoder):
+    def __init__(self, size, tree_positions, row_limits, column_limits, efficient=True, verbose=True):
+        super().__init__(size, tree_positions, row_limits, column_limits, efficient=efficient, verbose=verbose,
+                         algo_name="Sequential")
+
+    def exactly_k_of_n(self, var, limit):
+        """Sequential Encoding:
+        See: Towards an Optimal CNF Encoding of Boolean Cardinality Constraints"""
+        new_vars = {(i, j): next(self.counter) for i in range(len(var)) for j in range(limit)}
+        if limit == 0:
+            return []
+        clauses = []
+        for i, v in list(enumerate(var))[:-1]:
+            clauses.append([-v, new_vars[(i, 0)]])
+        for j in range(1, limit):
+            clauses.append([-new_vars[(0, j)]])
+        for i, _ in list(enumerate(var))[1:-1]:
+            for j in range(limit):
+                clauses.append([-new_vars[(i - 1, j)], new_vars[(i, j)]])
+        for i, v in list(enumerate(var))[1:-1]:
+            for j in range(1, limit):
+                clauses.append([-v, -new_vars[(i - 1, j - 1)], new_vars[(i, j)]])
+        for i, v in list(enumerate(var))[1:]:
+            clauses.append([-v, -new_vars[(i - 1, limit - 1)]])
+        return clauses

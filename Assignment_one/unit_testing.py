@@ -23,10 +23,11 @@ class TestGame(unittest.TestCase):
 
     def setUp(self) -> None:
         self.paths = glob.glob("tent-inputs\\*.txt")
-        self.games = [game.TentGameEncoding.from_text_file(path, verbose=False) for path in self.paths]
+        self.games = [game.GameEncoderBinomial.from_text_file(path, verbose=False) for path in self.paths]
+        # self.games = [game.GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
 
     def test_randomness(self):
-        g1 = game.TentGameEncoding.from_randomness()
+        g1 = game.GameEncoderBinomial.from_randomness()
         g1.solve_sat_problem()
         solved, _ = g1.get_solution(g1.get_cnf_solution())
         self.assertTrue(solved)
