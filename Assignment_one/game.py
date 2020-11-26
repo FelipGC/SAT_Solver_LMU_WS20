@@ -126,6 +126,7 @@ class GameEncoder(ABC):
 
             return cls(size, tree_indices, row_limits, column_limits, verbose=verbose, efficient=efficient)
 
+
     def filter_tent_positions(self):
         tent_pos_to_id = {pos: idx for idx, pos in
                           enumerate([(x, y) for x in range(self.size[0]) for y in range(self.size[1])], 1)}
@@ -271,22 +272,41 @@ class GameEncoder(ABC):
 
         return clauses
 
-    def output_field(self):
+    def output_field(self,file):
+        open(file, "w").close()
+        f = open(file, "a+")
+
         encoding = [list_to_string(self.size)]
         for r_index in range(self.size[0]):
             row = []
+            string = ''
             for c_index in range(self.size[1]):
                 if (r_index, c_index) in self.tree_positions:
                     row.append("T")
+                    string = string + "T"
+
                 elif (r_index, c_index) in self.tent_positions:
                     row.append("C")
+                    string = string + "C"
+
                 else:
                     row.append(".")
+                    string = string + "."
+
             row.append(" " + str(self.row_limits[r_index]))
             encoding.append("".join(row))
+            f.write(string + "\n")
 
         encoding.append(list_to_string(self.column_limits))
         encoding = "\n".join(encoding)
+
+
+
+
+
+
+
+
         return encoding
 
 
