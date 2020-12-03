@@ -1,7 +1,5 @@
-from Assignment_one.game import GameEncoderBinomial, GameEncoderSequential
+from Assignment_one.game import GameEncoderBinomial, GameEncoderSequential, write_to_text_file, random_field
 from Assignment_one.performance import print_encoding_details, combine_analysis_reports, analyse_sat_solvers
+from Assignment_one.parse_gameid import parse_id
 
-g1 = GameEncoderSequential.from_text_file("tent-inputs\\tents-10x10-t1.txt")
-g1.solve_sat_problem()
-print(g1.output_field())
-print_encoding_details(g1)
+write_to_text_file((random_field((8,8),0.5)),"tent-inputs\\gamefield.txt")

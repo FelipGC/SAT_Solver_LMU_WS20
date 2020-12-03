@@ -4,6 +4,49 @@ from pysat.formula import CNF
 import numpy as np
 from abc import ABC, abstractmethod
 
+def random_field(size, tree_density):
+    d = int(tree_density * size[0] * size[1])
+    tree_indices = list(set((np.random.randint(size[0]), np.random.randint(size[1])) for _ in range(d)))
+    field = str(size[0]) + ' ' + str(size[1]) + '\n'
+
+
+    for r_index in range(size[1]):
+
+        for c_index in range(size[0]):
+            correct = 0
+
+            for tent_index in tree_indices:
+
+                if (tent_index[0] == r_index) and (tent_index[1] == c_index):
+                    field += 'T'
+                    correct = 1
+
+            if correct == 0:
+                field += '.'
+
+        field += '\n'
+
+    print(field)
+
+    return (field)
+
+
+def write_to_text_file(input,output):
+    open(output, "w+").close()
+    f = open(output, "w+")
+
+    lines = iter(input.splitlines())
+
+    for r_index in lines:
+        string = ''
+
+        for c_index in r_index:
+            string = string+c_index
+
+        f.write(string + "\n")
+
+    return output
+
 
 def as_DIMACS_CNF(clauses):
     n_var = len({abs(x) for clause in clauses for x in clause})
@@ -85,11 +128,11 @@ class GameEncoder(ABC):
                                    enumerate([(x, y) for x in range(size[0]) for y in range(size[1])], 1)}
         self.counter = count(self.capacity * 2)
 
-        if verbose:
-            print("Created Tent with:")
-            print("Efficient:", efficient)
-            print(self.__dict__)
-            print("Number of potential tent field variables:", len(self.tent_pos_to_id))
+        #if verbose:
+            #print("Created Tent with:")
+            #print("Efficient:", efficient)
+            #print(self.__dict__)
+            #print("Number of potential tent field variables:", len(self.tent_pos_to_id))
 
     @classmethod
     def from_randomness(cls, size=(8, 8), tree_density=0.5):
@@ -273,25 +316,26 @@ class GameEncoder(ABC):
         return clauses
 
     def output_field(self,file):
-        open(file, "w").close()
-        f = open(file, "a+")
+        open(file, "w+").close()
+        f = open(file, "w+")
 
         encoding = [list_to_string(self.size)]
         for r_index in range(self.size[0]):
             row = []
             string = ''
             for c_index in range(self.size[1]):
+
                 if (r_index, c_index) in self.tree_positions:
-                    row.append("T")
-                    string = string + "T"
+                     row.append("T")
+                     string = string + "T"
 
                 elif (r_index, c_index) in self.tent_positions:
-                    row.append("C")
-                    string = string + "C"
+                     row.append("C")
+                     string = string + "C"
 
                 else:
-                    row.append(".")
-                    string = string + "."
+                     row.append(".")
+                     string = string + "."
 
             row.append(" " + str(self.row_limits[r_index]))
             encoding.append("".join(row))
