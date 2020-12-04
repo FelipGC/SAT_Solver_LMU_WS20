@@ -1,7 +1,7 @@
 import math, itertools
 
 
-class BinaryExactly_k_Of_n:
+class BinaryAtMost_k_Of_n:
     # instances of this class construct a cnf asserting that exactly k of n vars are correct, and appropriately names them
     # the idea for the encoding  comes from the paper "SAT Encodings of the At-Most-k Constraint "by A. M. Frisch and P. A. Giannaros
     # found here: https://www.it.uu.se/research/group/astra/ModRef10/papers/Alan%20M.%20Frisch%20and%20Paul%20A.%20Giannoros.%20SAT%20Encodings%20of%20the%20At-Most-k%20Constraint%20-%20ModRef%202010.pdf
@@ -24,11 +24,9 @@ class BinaryExactly_k_Of_n:
         # as no methods other than self.buildCNF need to be used outside of this class, we tie them together under this method
         self.initB()
         self.initT()
-        self.initNumOfNewVars()
         self.initBitStrings()
         self.renameExtraVars()
         self.atMost()
-        self.atLeast()
 
     def initB(self):
         for i in range(1, self.k + 1):
@@ -43,10 +41,6 @@ class BinaryExactly_k_Of_n:
             for i in range(1, self.n + 1):
                 res.append(i)
             self.T.append(res)
-
-    def initNumOfNewVars(self):
-        # should be called after these are initialized
-        self.numberOfNewVars = len(self.B) + len(self.T)
 
     def renameExtraVars(self):
         # the extraVars are those in self.B and self.T. As vars they need to be integers, and to not have any conflicts, they ought
@@ -109,6 +103,15 @@ class BinaryExactly_k_Of_n:
         self.args = list(map(lambda x: (-1) * x, self.args))
 
 
-binaryAtMost = BinaryExactly_k_Of_n(3, [4, 9, 12, 16], 30)
-binaryAtMost.buildCNF()
-print(len(binaryAtMost.cnf))
+def exactly_k_Of_n(k, args, maxPrevVarIndex):
+    binaryAtMost = BinaryAtMost_k_Of_n(k, args, maxPrevVarIndex)
+    binaryAtMost.buildCNF()
+
+    binaryAtLeast = BinaryAtMost_k_Of_n(len(args) - k, list(map(lambda x: (-1) * x, args)),
+                                        binaryAtMost.numberOfNewVars + maxPrevVarIndex)
+    binaryAtLeast.buildCNF()
+
+    return binaryAtLeast.cnf + binaryAtMost.cnf
+
+
+print(exactly_k_Of_n(2, [4, 9, 12, 16], 30))
