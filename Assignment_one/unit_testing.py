@@ -23,11 +23,12 @@ class TestGame(unittest.TestCase):
 
     def setUp(self) -> None:
         self.paths = glob.glob("tent-inputs\\*.txt")
-        self.games = [game.GameEncoderBinomial.from_text_file(path, verbose=False) for path in self.paths]
-        # self.games = [game.GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
+        # self.games = [game.GameEncoderBinomial.from_text_file(path, verbose=False) for path in self.paths]
+        self.games = [game.GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
+        # self.games = [game.GameEncoderBinary.from_text_file(path, verbose=False) for path in self.paths]
 
     def test_randomness(self):
-        g1 = game.GameEncoderBinomial.from_randomness()
+        g1 = game.GameEncoderBinomial.from_randomness((10, 10), tree_density=0.25)
         g1.solve_sat_problem()
         solved, _ = g1.get_solution(g1.get_cnf_solution())
         self.assertTrue(solved)
@@ -141,6 +142,16 @@ class TestGame(unittest.TestCase):
         for index, g in enumerate(self.games):
             g.solve_sat_problem()
             self.assertTrue(g.check_solution(g.tent_positions))
+
+    def test_check_equal_solution(self):
+        games1 = [game.GameEncoderBinomial.from_text_file(path, verbose=False) for path in self.paths]
+        games2 = [game.GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
+        games3 = [game.GameEncoderBinary.from_text_file(path, verbose=False) for path in self.paths]
+        for g1, g2, g3 in zip(games1, games2, games3):
+            g1.solve_sat_problem()
+            g2.solve_sat_problem()
+            g3.solve_sat_problem()
+            self.assertTrue(g1.tent_positions == g2.tent_positions == g3.tent_positions)
 
 
 if __name__ == "__main__":

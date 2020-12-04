@@ -7,12 +7,12 @@ class BinaryAtMost_k_Of_n:
     # found here: https://www.it.uu.se/research/group/astra/ModRef10/papers/Alan%20M.%20Frisch%20and%20Paul%20A.%20Giannoros.%20SAT%20Encodings%20of%20the%20At-Most-k%20Constraint%20-%20ModRef%202010.pdf
     # after an instance is created with appropriate values, call self.buildCNF on that object -> self.cnf will now contain the appropriate CNF
 
-    def __init__(self, k, args, highestPrevVarIndex):
+    def __init__(self, k, args, counter):
         # args is the list of n variables of which we will want to say "atMost k of n"
         # to not have any naming conflicts, we also need to now, what the highest index of any variable prev occuring was
         self.n = len(args)
         self.args = args
-        self.highestPrevVarIndex = highestPrevVarIndex
+        self.counter = counter
         self.k = k
         self.B = []
         self.T = []
@@ -45,19 +45,16 @@ class BinaryAtMost_k_Of_n:
     def renameExtraVars(self):
         # the extraVars are those in self.B and self.T. As vars they need to be integers, and to not have any conflicts, they ought
         # to be >self.highestPrevVarIndex. This function is to be called after self.T and self.B are initialized!
-        counter = self.highestPrevVarIndex + 1
 
         # first rename vars in self.B:
         for i in range(0, len(self.B)):
             for j in range(0, len(self.B[i])):
-                self.B[i][j] = counter
-                counter += 1
+                self.B[i][j] = next(self.counter)
 
         # now rename vars in self.T
         for i in range(0, len(self.T)):
             for j in range(0, len(self.T[i])):
-                self.T[i][j] = counter
-                counter += 1
+                self.T[i][j] = next(self.counter)
 
     def initBitStrings(self):
         self.bitStrings = list(self.bitStringGenerator())
@@ -78,8 +75,7 @@ class BinaryAtMost_k_Of_n:
         # this corresponds to the second of the protruding formulas on p. 4 of the Frisch et al. paper
         for i in range(1, self.n + 1):
             # res now becomes the clause of width k+1
-            res = []
-            res.append((-1) * self.args[i - 1])
+            res = [(-1) * self.args[i - 1]]
             for k in range(1, self.k + 1):
                 res.append(self.T[k - 1][i - 1])
             self.cnf.append(res)
@@ -88,30 +84,3 @@ class BinaryAtMost_k_Of_n:
             for g in range(1, self.k + 1):
                 for j in range(1, math.ceil(math.log(self.n, 2)) + 1):
                     self.cnf.append([(-1) * self.T[g - 1][i - 1], self.phi(i, g, j)])
-
-    def atLeast(self):
-        # adds the remaining clauses to self.cnf. Uses self.atMost
-        # note that atLeast k of n are true means the same as: atMost n-k of n are false
-        # as our above function self.atMost uses self.k and self.args, and we need these values differently, we shall temporarily
-        # give them other values, then call self.atMost() and then reinstantiate the initial values for our instanceVariables
-        self.k = self.n - self.k
-        self.args = list(map(lambda x: (-1) * x, self.args))
-
-        self.atMost()
-
-        self.k = self.n - self.k
-        self.args = list(map(lambda x: (-1) * x, self.args))
-
-
-def exactly_k_Of_n(k, args, maxPrevVarIndex):
-    binaryAtMost = BinaryAtMost_k_Of_n(k, args, maxPrevVarIndex)
-    binaryAtMost.buildCNF()
-
-    binaryAtLeast = BinaryAtMost_k_Of_n(len(args) - k, list(map(lambda x: (-1) * x, args)),
-                                        binaryAtMost.numberOfNewVars + maxPrevVarIndex)
-    binaryAtLeast.buildCNF()
-
-    return binaryAtLeast.cnf + binaryAtMost.cnf
-
-
-print(exactly_k_Of_n(2, [4, 9, 12, 16], 30))

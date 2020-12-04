@@ -4,6 +4,35 @@ from pysat.formula import CNF
 import numpy as np
 from abc import ABC, abstractmethod
 
+from Assignment_one.binaryEncoding import BinaryAtMost_k_Of_n
+
+
+def remove_tents(input_game):
+    lines = iter(input_game.splitlines())
+    output = ''
+    for r_index in lines:
+        string = ''
+        for c_index in r_index:
+            if c_index == 'C':
+                string += '.'
+            else:
+                string += c_index
+        string += '\n'
+        output += string
+    return output
+
+
+def write_to_text_file(input_game, output_game):
+    open(output_game, "w+").close()
+    f = open(output_game, "w+")
+    lines = iter(input_game.splitlines())
+    for r_index in lines:
+        string = ''
+        for c_index in r_index:
+            string = string + c_index
+        f.write(string + "\n")
+    return output_game
+
 
 def as_DIMACS_CNF(clauses):
     n_var = len({abs(x) for clause in clauses for x in clause})
@@ -319,60 +348,38 @@ class GameEncoderSequential(GameEncoder):
     def exactly_k_of_n(self, var, limit):
         """Sequential Encoding:
         See: Towards an Optimal CNF Encoding of Boolean Cardinality Constraints"""
-        new_vars = {(i, j): next(self.counter) for i in range(len(var)) for j in range(limit)}
-        if limit == 0:
-            return []
-        clauses = []
-        for i, v in list(enumerate(var))[:-1]:
-            clauses.append([-v, new_vars[(i, 0)]])
-        for j in range(1, limit):
-            clauses.append([-new_vars[(0, j)]])
-        for i, _ in list(enumerate(var))[1:-1]:
-            for j in range(limit):
-                clauses.append([-new_vars[(i - 1, j)], new_vars[(i, j)]])
-        for i, v in list(enumerate(var))[1:-1]:
-            for j in range(1, limit):
-                clauses.append([-v, -new_vars[(i - 1, j - 1)], new_vars[(i, j)]])
-        for i, v in list(enumerate(var))[1:]:
-            clauses.append([-v, -new_vars[(i - 1, limit - 1)]])
-        return clauses
+
+        def k_of_n(var_, limit_):
+            new_vars = {(i, j): next(self.counter) for i in range(len(var_)) for j in range(limit_)}
+            if limit_ == 0:
+                return []
+            clauses = []
+            for i, v in list(enumerate(var_))[:-1]:
+                clauses.append([-v, new_vars[(i, 0)]])
+            for j in range(1, limit_):
+                clauses.append([-new_vars[(0, j)]])
+            for i, _ in list(enumerate(var_))[1:-1]:
+                for j in range(limit_):
+                    clauses.append([-new_vars[(i - 1, j)], new_vars[(i, j)]])
+            for i, v in list(enumerate(var_))[1:-1]:
+                for j in range(1, limit_):
+                    clauses.append([-v, -new_vars[(i - 1, j - 1)], new_vars[(i, j)]])
+            for i, v in list(enumerate(var_))[1:]:
+                clauses.append([-v, -new_vars[(i - 1, limit_ - 1)]])
+            return clauses
+
+        return k_of_n(var, limit) + k_of_n(list(map(lambda x: (-1) * x, var)), len(var) - limit)
 
 
-def remove_tents(input_game):
+class GameEncoderBinary(GameEncoder):
+    def __init__(self, size, tree_positions, row_limits, column_limits, efficient=True, verbose=True):
+        super().__init__(size, tree_positions, row_limits, column_limits, efficient=efficient, verbose=verbose,
+                         algo_name="Binary")
 
-    lines = iter(input_game.splitlines())
-
-    output = ''
-
-    for r_index in lines:
-        string = ''
-
-        for c_index in r_index:
-
-            if c_index == 'C':
-                string += '.'
-
-            else:
-                string += c_index
-
-        string += '\n'
-        output += string
-
-    return output
-
-
-def write_to_text_file(input_game,output_game):
-    open(output_game, "w+").close()
-    f = open(output_game, "w+")
-
-    lines = iter(input_game.splitlines())
-
-    for r_index in lines:
-        string = ''
-
-        for c_index in r_index:
-            string = string+c_index
-
-        f.write(string + "\n")
-
-    return output_game
+    def exactly_k_of_n(self, var, limit):
+        """Binary Encoding:"""
+        binary_at_most = BinaryAtMost_k_Of_n(limit, var, self.counter)
+        binary_at_most.buildCNF()
+        binary_at_least = BinaryAtMost_k_Of_n(len(var) - limit, list(map(lambda x: (-1) * x, var)), self.counter)
+        binary_at_least.buildCNF()
+        return binary_at_least.cnf + binary_at_most.cnf

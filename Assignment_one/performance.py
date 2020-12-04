@@ -42,7 +42,7 @@ def print_encoding_details(g: GameEncoder):
     print("-" * 30)
 
 
-def analyse_sat_solvers(games: [GameEncoder]):
+def analyse_sat_solvers(games: [GameEncoder], show_png=False):
     from timeit import default_timer as timer
     from pysat.solvers import Cadical, Glucose4, Lingeling, Minisat22, Maplesat
     df = pd.DataFrame(columns=["Solver", "Execution time [sec]", "Algorithm"])
@@ -62,13 +62,17 @@ def analyse_sat_solvers(games: [GameEncoder]):
     print("Saved data-frame as csv.")
     sns.barplot(x="Solver", y="Execution time [sec]", hue="Algorithm", data=df)
     plt.savefig("data\\solver_performance_analysis.png")
+    if show_png:
+        print("Plotting graph...")
+        plt.show()
 
     class EncodingPerformanceAnalysis:
         def __init__(self, efficient=True):
             print(f"EFFICIENT={efficient}: Creating and solving multiple games, this might take a while...")
             paths = glob.glob("tent-inputs\\*.txt")
             self.efficient = efficient
-            self.games = [game.GameEncoderBinomial.from_text_file(path, efficient=self.efficient, verbose=False) for path
+            self.games = [game.GameEncoderBinomial.from_text_file(path, efficient=self.efficient, verbose=False) for
+                          path
                           in
                           paths]
             self.games_cnf = [g.get_cnf_solution() for g in self.games]

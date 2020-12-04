@@ -26,4 +26,4 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("usage %s gameid" % sys.argv[0])
         exit(1)
-    print(parse_game_id(sys.argv[1]))
+    print(parse_id(sys.argv[1]))
