@@ -24,6 +24,7 @@ class BinaryExactly_k_Of_n:
         # as no methods other than self.buildCNF need to be used outside of this class, we tie them together under this method
         self.initB()
         self.initT()
+        self.initNumOfNewVars()
         self.initBitStrings()
         self.renameExtraVars()
         self.atMost()
@@ -45,7 +46,7 @@ class BinaryExactly_k_Of_n:
 
     def initNumOfNewVars(self):
         # should be called after these are initialized
-        pass
+        self.numberOfNewVars = len(self.B) + len(self.T)
 
     def renameExtraVars(self):
         # the extraVars are those in self.B and self.T. As vars they need to be integers, and to not have any conflicts, they ought
