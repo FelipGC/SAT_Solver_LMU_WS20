@@ -92,7 +92,7 @@ class GameEncoder(ABC):
             print("Number of potential tent field variables:", len(self.tent_pos_to_id))
 
     @classmethod
-    def from_randomness(cls, size=(8, 8), tree_density=0.5):
+    def from_randomness(cls, size, tree_density):
         d = int(tree_density * size[0] * size[1])
         tree_indices = list(set((np.random.randint(size[0]), np.random.randint(size[1])) for _ in range(d)))
         game = cls(size, tree_indices, row_limits=[], column_limits=[], verbose=False)
@@ -336,3 +336,43 @@ class GameEncoderSequential(GameEncoder):
         for i, v in list(enumerate(var))[1:]:
             clauses.append([-v, -new_vars[(i - 1, limit - 1)]])
         return clauses
+
+
+def remove_tents(input_game):
+
+    lines = iter(input_game.splitlines())
+
+    output = ''
+
+    for r_index in lines:
+        string = ''
+
+        for c_index in r_index:
+
+            if c_index == 'C':
+                string += '.'
+
+            else:
+                string += c_index
+
+        string += '\n'
+        output += string
+
+    return output
+
+
+def write_to_text_file(input_game,output_game):
+    open(output_game, "w+").close()
+    f = open(output_game, "w+")
+
+    lines = iter(input_game.splitlines())
+
+    for r_index in lines:
+        string = ''
+
+        for c_index in r_index:
+            string = string+c_index
+
+        f.write(string + "\n")
+
+    return output_game
