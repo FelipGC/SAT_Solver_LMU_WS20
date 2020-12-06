@@ -145,6 +145,8 @@ class GameEncoder(ABC):
             row_limits, column_limits, tree_indices = [], list_to_numbers(lines.pop()), []
             index_row = -1
             for line in lines:
+                if not line:
+                    continue
                 index_row += 1
                 index_column = -1
                 row_limits.append(line.pop())
