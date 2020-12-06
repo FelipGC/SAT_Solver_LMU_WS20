@@ -118,7 +118,7 @@ ressources_label_link2 = tk.Label(page,  text="freepik.com - Designed by brgfx",
 
 about_julian_label = tk.Label(page, text="Julian Finkenzeller: ", fg='white', bg='#836dd2',
                       font=('Roboto', '10', 'bold'))
-about_felipe_label = tk.Label(page, text="Felipe Guimerà Cuevas: ", fg='white', bg='#836dd2',
+about_felipe_label = tk.Label(page, text="Felip Guimerà Cuevas: ", fg='white', bg='#836dd2',
                       font=('Roboto', '10', 'bold'))
 about_branislav_label = tk.Label(page, text="Branislav Blagojevic: ", fg='white', bg='#836dd2',
                       font=('Roboto', '10', 'bold'))
