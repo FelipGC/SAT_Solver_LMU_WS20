@@ -23,12 +23,13 @@ class TestGame(unittest.TestCase):
 
     def setUp(self) -> None:
         self.paths = glob.glob("tent-inputs\\*.txt")
+        self.paths = [p for p in self.paths if "gamefield" not in p]
         # self.games = [game.GameEncoderBinomial.from_text_file(path, verbose=False) for path in self.paths]
         self.games = [game.GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
         # self.games = [game.GameEncoderBinary.from_text_file(path, verbose=False) for path in self.paths]
 
     def test_randomness(self):
-        g1 = game.GameEncoderBinomial.from_randomness((10, 10), tree_density=0.25)
+        g1 = game.GameEncoderSequential.from_randomness((10, 10), tree_density=0.25)
         g1.solve_sat_problem()
         solved, _ = g1.get_solution(g1.get_cnf_solution())
         self.assertTrue(solved)
@@ -58,10 +59,11 @@ class TestGame(unittest.TestCase):
     def test_reproduce_field(self):
         # Test does not check if tents are modeled correctly.
         # but if we can reproduce the original field encoding based on internal data.
-        for index, g in enumerate(self.games):
+        games = [game.GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
+        for index, g in enumerate(games):
             with open(self.paths[index], "r") as f:
                 original_field = f.read()
-            self.assertEqual(g.output_field(), original_field)
+                self.assertEqual(g.output_field(), original_field)
 
     def test_implies_all(self):
         variable_length = 10

@@ -76,18 +76,18 @@ def get_adjacent_positions(pos, size, remove_pos=True, restricted=None, compleme
 
 
 def exactly_one(variables):
-    clauses = [tuple(variables)]  # at least one
+    clauses = [list(set(variables))]  # at least one
     clauses.extend(at_most_one(variables))  # exactly one
     return clauses
 
 
 def at_most_one(variables):
     # IMPROVEMENT: Combinations is better than permutations
-    return [(-x, -y) for x, y in combinations(variables, 2)]
+    return [[-x, -y] for x, y in combinations(variables, 2)]
 
 
 def implies_all(var: int, implied_vars):
-    return [(-var, implied_var) for implied_var in implied_vars]
+    return [[-var, implied_var] for implied_var in implied_vars]
 
 
 class GameEncoder(ABC):
@@ -311,6 +311,7 @@ class GameEncoder(ABC):
 
         tree_unique = [exactly_one(links_to(tree)) for tree in self.tree_pos_to_id.values()]
         tent_unique = [at_most_one(links_to(tent)) for tent in self.tent_pos_to_id.values()]
+        # tent_unique = [[c.append(-tent) for c in exactly_one(links_to(tent))] for tent in self.tent_pos_to_id.values()]
 
         # Concatenate
         clauses = list(chain(*(clauses_link + tree_unique + tent_unique)))
