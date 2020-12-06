@@ -1,9 +1,9 @@
+import numpy as np
+import os
 from itertools import combinations, chain, product, count
 from pysat.solvers import Cadical
 from pysat.formula import CNF
-import numpy as np
 from abc import ABC, abstractmethod
-
 from Assignment_one.binaryEncoding import BinaryAtMost_k_Of_n
 
 
@@ -156,6 +156,15 @@ class GameEncoder(ABC):
                         tree_indices.append((index_row, index_column))
 
             return cls(size, tree_indices, row_limits, column_limits, verbose=verbose, efficient=efficient)
+
+    @classmethod
+    def from_path_or_id(cls, user_input, verbose=True, efficient=True):
+        if os.path.exists(user_input):
+            return cls.from_text_file(user_input, verbose=verbose, efficient=efficient)
+        elif len(user_input.split(":")) == 2 and user_input[0].isdigit():
+            return cls.from_game_id(user_input, verbose=verbose, efficient=efficient)
+        else:
+            raise Exception("Input is invalid. Not a path, nor a valid game_id!")
 
     def filter_tent_positions(self):
         tent_pos_to_id = {pos: idx for idx, pos in
