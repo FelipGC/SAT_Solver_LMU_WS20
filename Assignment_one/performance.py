@@ -25,20 +25,18 @@ def combine_analysis_reports():
 
 def get_encoding_details(g: GameEncoder):
     cnf = g.get_cnf_solution()
-    literals = list(chain(*cnf))
-    literals_n = len(literals)
+    a = list(chain(*cnf))
     clauses_n = len(cnf)
-    variables_n = len(set(abs(x) for x in literals))
-    return variables_n, literals_n, clauses_n
+    variables_n = len(set(abs(x) for x in a))
+    return variables_n, clauses_n
 
 
 def print_encoding_details(g: GameEncoder):
-    variables_n, literals_n, clauses_n = get_encoding_details(g)
+    variables_n, clauses_n = get_encoding_details(g)
     print("\n" + "-" * 30)
     print("Game size:", g.size)
     print("Nr. of \tvariables:\t", variables_n)
     print("Nr. of \tclauses:\t", clauses_n)
-    print("Nr. of \tliterals:\t", literals_n)
     print("-" * 30)
 
 

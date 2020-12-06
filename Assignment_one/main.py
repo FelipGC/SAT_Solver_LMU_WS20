@@ -6,22 +6,34 @@ from PIL import Image, ImageTk
 
 
 class MyButton:
-    def __init__(self, variable, tile_size, index_x, index_y, var_x, var_y):
-        def my_call():
-            self.variable = 'C' if self.variable == '.' else '.'
-            self.button = tk.Button(page, image=grass_tile if self.variable == '.' else camp_tile,
-                                    command=my_call).place(x=x, y=y)
+    def __init__(self, variable, tile_size, index_x, index_y, tick_x, tick_y):
+        global pos_to_button
 
-        x = index_x + var_x * tile_size
-        y = index_y + var_y * tile_size
+        def my_call():
+            # print(self.pos)
+            self.variable = 'C' if self.variable == '.' else '.'
+            self.button.destroy()
+            self.button = tk.Button(page, image=grass_tile if self.variable == '.' else camp_tile,
+                                    command=my_call)
+            self.button.place(x=x, y=y)
+            if self.variable == 'C':
+                user_solution[self.pos] = self
+            else:
+                del user_solution[self.pos]
+
+        x = index_x + tick_x * tile_size
+        y = index_y + tick_y * tile_size
         self.variable = variable
-        self.pos = (var_x, var_y)
+        self.pos = (tick_y - 1, tick_x)
+        self.gui_pos = (x, y)
         if variable == 'T':
-            self.button = tk.Button(page, image=tree_tile).place(x=x, y=y)
+            self.button = tk.Button(page, image=tree_tile)
         elif variable == '.':
-            self.button = tk.Button(page, image=grass_tile, command=my_call).place(x=x, y=y)
+            self.button = tk.Button(page, image=grass_tile, command=my_call)
         elif variable == 'C':
-            self.button = tk.Button(page, image=camp_tile, command=my_call).place(x=x, y=y)
+            self.button = tk.Button(page, image=camp_tile, command=my_call)
+        self.button.place(x=x, y=y)
+        pos_to_button[self.pos] = self
 
 
 # Global cursor values
@@ -48,17 +60,8 @@ def load_game_id(game_id_string):
     hard_button.place(relx=0.6, rely=0.2, relwidth=0.2, relheight=0.05)
 
     global game_field
-    game_field = GameEncoderBinomial.from_path_or_id(game_id_string)
 
-    size_game = [2]
-
-    output_field = game_field.output_field()
-
-    if output_field[:1] == '8':
-        size_game[0] = 8
-
-    else:
-        size_game[0] = int(output_field[:2])
+    game_field = GameEncoderSequential.from_path_or_id(game_id_string)
 
     # HERE
     write_to_text_file(game_field.output_field(), 'tent-inputs/gamefield.txt')
@@ -70,13 +73,50 @@ def load_game_id(game_id_string):
 
 def display_game_field(difficulty_game, size_game, create_game=False, print_solution=False):
     global game_field
+    global pos_to_button
 
     if create_game:
+        pos_to_button.clear()
+        user_solution.clear()
         game_field = GameEncoderSequential.from_randomness(size_game, difficulty_game)
         write_to_text_file(game_field.output_field(), 'tent-inputs/gamefield-solution.txt')
         write_to_text_file(remove_tents(game_field.output_field()), 'tent-inputs/gamefield.txt')
 
-    if size_game[0] >= 40:
+    for pos, b in pos_to_button.items():
+        if pos in user_solution:
+            continue
+        b.button.destroy()
+        del b
+
+    output_field = game_field.output_field()
+    x, y = output_field.split("\n")[0].split(" ")[:2]
+    game_size = max(int(x), int(y))
+
+    if game_size >= 60:
+        # Game Size Values
+        border_size = 7.5
+        border_x = 0
+        border_y = -3
+        index_x = 2
+        index_y = 120
+        counter = 0
+        tick_y = 0
+        tile_size = int(game_size * 0.03)
+        font_size = 6
+
+    elif game_size >= 40:
+        # Game Size Values
+        border_size = 7.5
+        border_x = 0
+        border_y = -3
+        index_x = 40
+        index_y = 120
+        counter = 0
+        tick_y = 0
+        tile_size = int(game_size * 0.085)
+        font_size = 6
+
+    elif game_size >= 30:
         # Game Size Values
         border_size = 7.5
         border_x = 0
@@ -84,23 +124,11 @@ def display_game_field(difficulty_game, size_game, create_game=False, print_solu
         index_x = 120
         index_y = 130
         counter = 0
-        var_y = 0
-        tile_size = int(size_game[1] * 0.1)
+        tick_y = 0
+        tile_size = int(game_size * 0.2)
         font_size = 6
 
-    elif size_game[0] >= 30:
-        # Game Size Values
-        border_size = 7.5
-        border_x = 0
-        border_y = -3
-        index_x = 120
-        index_y = 130
-        counter = 0
-        var_y = 0
-        tile_size = int(size_game[1] * 0.2)
-        font_size = 6
-
-    elif size_game[0] >= 25:
+    elif game_size >= 25:
         # Game Size Values
         border_size = 7.5
         border_x = 0
@@ -108,11 +136,11 @@ def display_game_field(difficulty_game, size_game, create_game=False, print_solu
         index_x = 120
         index_y = 140
         counter = 0
-        var_y = 0
-        tile_size = int(size_game[1] * 0.35)
+        tick_y = 0
+        tile_size = int(game_size * 0.35)
         font_size = 8
 
-    elif size_game[0] >= 20:
+    elif game_size >= 20:
         # Game Size Values
         border_size = 7.5
         border_x = 3
@@ -120,11 +148,11 @@ def display_game_field(difficulty_game, size_game, create_game=False, print_solu
         index_x = 120
         index_y = 140
         counter = 0
-        var_y = 0
-        tile_size = int(size_game[1] * 0.6)
+        tick_y = 0
+        tile_size = int(game_size * 0.6)
         font_size = 8
 
-    elif size_game[0] >= 15:
+    elif game_size >= 15:
         # Game Size Values
         border_size = 7.5
         border_x = 2
@@ -132,11 +160,11 @@ def display_game_field(difficulty_game, size_game, create_game=False, print_solu
         index_x = 120
         index_y = 120
         counter = 0
-        var_y = 0
-        tile_size = int(size_game[1] * 1.2)
+        tick_y = 0
+        tile_size = int(game_size * 1.2)
         font_size = 14
 
-    elif size_game[0] >= 10:
+    elif game_size >= 10:
         # Game Size Values
         border_size = 7.5
         border_x = 10
@@ -144,8 +172,8 @@ def display_game_field(difficulty_game, size_game, create_game=False, print_solu
         index_x = 120
         index_y = 120
         counter = 0
-        var_y = 0
-        tile_size = int(size_game[1] * 3)
+        tick_y = 0
+        tile_size = int(game_size * 3)
         font_size = 14
     else:
         # Game Size Values
@@ -155,49 +183,52 @@ def display_game_field(difficulty_game, size_game, create_game=False, print_solu
         index_x = 120
         index_y = 120
         counter = 0
-        var_y = 0
-        tile_size = int(size_game[1] * 4.5)
+        tick_y = 0
+        tile_size = int(game_size * 4.5)
         font_size = 14
 
     global tree_tile
     global camp_tile
     global grass_tile
-    global pos_to_button
+    global camp_false_tile
 
     tree_tile = Image.open('assets/tree.png')
     camp_tile = Image.open('assets/camp.png')
+    camp_false_tile = Image.open('assets/camp_false.png')
     grass_tile = Image.open('assets/grass.png')
 
     tree_tile = tree_tile.resize((tile_size, tile_size))
     tree_tile = ImageTk.PhotoImage(tree_tile)
     camp_tile = camp_tile.resize((tile_size, tile_size))
     camp_tile = ImageTk.PhotoImage(camp_tile)
+    camp_false_tile = camp_false_tile.resize((tile_size, tile_size))
+    camp_false_tile = ImageTk.PhotoImage(camp_false_tile)
     grass_tile = grass_tile.resize((tile_size, tile_size))
     grass_tile = ImageTk.PhotoImage(grass_tile)
     tile_size = tile_size + border_size
 
     with open('tent-inputs/gamefield{}.txt'.format("-solution" if print_solution else "")) as data:
         for line in data:
-            var_x = 0
+            tick_x = 0
             stripped_line = line.strip()
 
             for variable in stripped_line:
-                pos_to_button[(var_x, var_y)] = MyButton(variable, tile_size, index_x, index_y, var_x, var_y)
-
-                if variable not in ['T', '.', 'C', ' '] and var_y > 0:
+                if variable not in ['T', '.', 'C', ' '] and tick_y > 0:
                     tk.Label(page, text=variable,
                              bg='#836dd2',
                              fg='white',
                              font=('bold', font_size)
-                             ).place(x=index_x + var_x * tile_size + border_x, y=index_y + var_y * tile_size + border_y)
+                             ).place(x=index_x + tick_x * tile_size + border_x,
+                                     y=index_y + tick_y * tile_size + border_y)
+                elif variable in ['T', '.', 'C']:
+                    b = MyButton(variable, tile_size, index_x, index_y, tick_x, tick_y)
+                    pos_to_button[b.pos] = b
 
                 if not variable == ' ':
-                    var_x = var_x + 1
+                    tick_x = tick_x + 1
 
             counter = counter + 1
-            var_y = var_y + 1
-
-    pass
+            tick_y += 1
 
 
 def change_button(event):
@@ -214,11 +245,12 @@ def change_button(event):
 
 
 def display_solved_game():
+    global user_solution
+    user_solution = {k: v for k, v in user_solution.items()}
     global game_field
 
     if game_field is None:
         tk.Label(page, text="Please start a new game!", fg='white', bg='#836dd2', font=('bold', 14)).place(x=180, y=60)
-
     else:
         encoding_details = (get_encoding_details(game_field))
 
@@ -227,8 +259,6 @@ def display_solved_game():
                  font=('bold', 10)).place(x=200, y=60)
         tk.Label(page, text="Number of clauses: " + str(encoding_details[1]), fg='white', bg='#836dd2',
                  font=('bold', 10)).place(x=200, y=90)
-        tk.Label(page, text="Number of literals: " + str(encoding_details[2]), fg='white', bg='#836dd2',
-                 font=('bold', 10)).place(x=200, y=120)
         display_game_field(difficulty, size, print_solution=True)
 
 
@@ -285,6 +315,14 @@ def new_game_page():
 def solve_page():
     clear_screen()
     display_solved_game()
+    for pos, b in user_solution.items():
+        if b.variable == "C" and pos not in game_field.tent_positions:
+            gui_pos = b.gui_pos
+            b.button.destroy()
+            del b
+            button = tk.Button(page, image=camp_false_tile)
+            button.place(x=gui_pos[0], y=gui_pos[1])
+            pos_to_button[pos] = button
 
 
 def stats_page():
@@ -355,8 +393,6 @@ def main():
 if __name__ == "__main__":
     root = tk.Tk()
     # GUI Init
-    mouse_pos_x = 0
-    mouse_pos_y = 0
     canvas = tk.Canvas(root, height=780, width=780)
     canvas.pack()
     background_image = tk.PhotoImage(file="assets/bg.png")
@@ -401,7 +437,7 @@ if __name__ == "__main__":
 
     # New Game Page
     game_id = tk.Entry(page, font=12)
-    game_id.insert(0, "Enter game ID/path here")
+    game_id.insert(0, "Enter here...")
 
     game_id_label = tk.Label(page, text="Path/ID: ", fg='white', bg='#836dd2',
                              font=('Roboto', '10', 'bold'))
@@ -473,9 +509,12 @@ if __name__ == "__main__":
     # Tiles for the game field
     tree_tile = Image.open('assets/tree.png')
     camp_tile = Image.open('assets/camp.png')
+    camp_false_tile = Image.open('assets/camp_false.png')
     grass_tile = Image.open('assets/grass.png')
 
     # Global gamefield variable
     game_field = None
+    user_solution = {}
     pos_to_button = {}
+
     main()

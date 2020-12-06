@@ -274,7 +274,7 @@ class GameEncoder(ABC):
         pass
 
     def condition_three_clauses(self):
-        """It is possible to match tents to trees 1:1,
+        """ It is possible to match tents to trees 1:1,
          such that each tree is orthogonally adjacent to its own tent
         (but may also be adjacent to other tents).
 
@@ -311,8 +311,6 @@ class GameEncoder(ABC):
 
         tree_unique = [exactly_one(links_to(tree)) for tree in self.tree_pos_to_id.values()]
         tent_unique = [at_most_one(links_to(tent)) for tent in self.tent_pos_to_id.values()]
-        # tent_unique = [[c.append(-tent) for c in exactly_one(links_to(tent))] for tent in self.tent_pos_to_id.values()]
-
         # Concatenate
         clauses = list(chain(*(clauses_link + tree_unique + tent_unique)))
 
