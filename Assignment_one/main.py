@@ -1,3 +1,6 @@
+import os
+import time
+
 try:
     import Tkinter as tk  # python2
 except:
@@ -140,7 +143,6 @@ size = (10, 10)
 tree_tile = Image.open('assets/tree.png')
 camp_tile = Image.open('assets/camp.png')
 grass_tile = Image.open('assets/grass.png')
-analysis_image = Image.open('assets/stats.png')
 
 # Global gamefield variable
 
@@ -360,6 +362,7 @@ def display_game_field(difficulty_game,size_game):
         font_size = 14
 
         gamefield = GameEncoderBinomial.from_randomness(size_game, difficulty_game)
+
         write_to_text_file(gamefield.output_field(), 'tent-inputs/gamefield-solution.txt')
         write_to_text_file(remove_tents(gamefield.output_field()), 'tent-inputs/gamefield.txt')
 
@@ -486,7 +489,7 @@ def display_game_field(difficulty_game,size_game):
 
                      #fill_grass_button_array(grass_button_index,index_y + var_x * tile_size,index_y + var_y * tile_size)
 
-                     tk.Button(page, image=grass_tile).place(x=index_x + var_x * tile_size, y=index_y + var_y * tile_size)
+                     tk.Button(page, image=grass_tile, ).place(x=index_x + var_x * tile_size, y=index_y + var_y * tile_size)
 
 
 
@@ -722,9 +725,8 @@ def solve_page():
 
 def stats_page():
     clear_screen()
-    global gamefield,analysis_image
+    global gamefield
 
-    """
     if gamefield == None:
         tk.Label(page, text="Please start a new game!", fg='white', bg='#836dd2', font=('bold', 14)).place(x=180, y=60)
 
@@ -733,17 +735,17 @@ def stats_page():
         g2 = GameEncoderSequential.from_text_file("tent-inputs\\gamefield.txt")
         g3 = GameEncoderBinary.from_text_file("tent-inputs\\gamefield.txt")
 
-        try:
-            analyse_sat_solvers([g1, g2, g3], show_png=True)
-            combine_analysis_reports()
-        finally:
-            pass
+        analyse_sat_solvers([g1, g2, g3], show_png=True)
 
-        analysis_image = Image.open('data/solver_performance_analysis.png')
+        load = Image.open("data/solver_performance_analysis.png")
+        image = load.resize((640, 480))
+        render = ImageTk.PhotoImage(image)
+        img = tk.Label(page, image=render)
+        img.image = render
+        tk.Label(page, text='Encoding Statistics', fg='white', bg='#836dd2', font=('bold', 18)).place(x=200, y=0)
+        img.place(x=0, y=40)
 
-        tk.Label(page, image=analysis_image).place(x=50, y=100)
     """
-
     analysis_image = Image.open('assets/stats.png')
 
     analysis_image = analysis_image.resize((533, 400))
@@ -754,7 +756,7 @@ def stats_page():
     tk.Label(page, text='Encoding Statistics', fg='white',  bg='#836dd2', font=('bold', 18)).place(x=200, y=20)
     tk.Label(page, image=analysis_image).place(x=35, y=100)
 
-
+    """
 
 
 def about_page():

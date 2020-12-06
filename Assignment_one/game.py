@@ -9,7 +9,7 @@ from Assignment_one.binaryEncoding import BinaryAtMost_k_Of_n
 
 def remove_tents(input_game):
     lines = iter(input_game.splitlines())
-    output = ''
+    output = []
     for r_index in lines:
         string = ''
         for c_index in r_index:
@@ -17,20 +17,26 @@ def remove_tents(input_game):
                 string += '.'
             else:
                 string += c_index
-        string += '\n'
-        output += string
+        output.append(string)
+    output = '\n'.join(output)
     return output
 
 
 def write_to_text_file(input_game, output_game):
     open(output_game, "w+").close()
     f = open(output_game, "w+")
+
+    f.write(input_game)
+    f.close()
+
+    """
     lines = iter(input_game.splitlines())
     for r_index in lines:
         string = ''
         for c_index in r_index:
             string = string + c_index
         f.write(string + "\n")
+    """
     return output_game
 
 
@@ -389,6 +395,8 @@ class GameEncoderBinary(GameEncoder):
 
     def exactly_k_of_n(self, var, limit):
         """Binary Encoding:"""
+        if limit == 0:
+            return []
         binary_at_most = BinaryAtMost_k_Of_n(limit, var, self.counter)
         binary_at_most.buildCNF()
         binary_at_least = BinaryAtMost_k_Of_n(len(var) - limit, list(map(lambda x: (-1) * x, var)), self.counter)

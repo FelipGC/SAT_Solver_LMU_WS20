@@ -16,7 +16,7 @@ from Assignment_one.game import GameEncoder, as_DIMACS_CNF
 def combine_analysis_reports():
     paths = glob.glob("data\\*.csv")
     df = pd.concat([pd.read_csv(path) for path in paths], ignore_index=True)
-    sns.lineplot(data=df, x="Field-size", y="Variables", hue="Algorithm")
+    # sns.lineplot(data=df, x="Field-size", y="Variables", hue="Algorithm")
     plt.show()
     ax = sns.lineplot(data=df, x="Field-size", y="Literals", hue="Algorithm")
     ax.set(yscale="log")
