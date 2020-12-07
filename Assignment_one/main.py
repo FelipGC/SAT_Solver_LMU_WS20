@@ -3,7 +3,7 @@ from Assignment_one.game import GameEncoderBinomial, GameEncoderSequential, Game
     remove_tents
 from Assignment_one.performance import analyse_sat_solvers, get_encoding_details
 from PIL import Image, ImageTk
-
+from Assignment_one.hover import ToolTip
 
 class MyButton:
     def __init__(self, variable, tile_size, index_x, index_y, tick_x, tick_y):
@@ -36,12 +36,11 @@ class MyButton:
         pos_to_button[self.pos] = self
 
 
-# Global cursor values
-
 
 def load_game_id(game_id_string):
     clear_screen()
     # Game ID
+    # hover = tk.Label(page, text='ⓘ Path/ID: ', fg='white', bg='#836dd2', font=('Roboto', '10', 'bold'))
     game_id_label.place(relx=0, rely=0, relwidth=0.2, relheight=0.075)
     game_id.place(relx=0.2, rely=0.01, relwidth=0.3, relheight=0.05)
     game_id_button.place(relx=0.52, rely=0.01, relwidth=0.1, relheight=0.05)
@@ -297,6 +296,8 @@ def new_game_page():
     clear_screen()
     # Game ID
     game_id_label.place(relx=0, rely=0, relwidth=0.2, relheight=0.075)
+    # hover.place(relx=1, rely=0, relwidth=0.2, relheight=0.075)
+
     game_id.place(relx=0.2, rely=0.01, relwidth=0.3, relheight=0.05)
     game_id_button.place(relx=0.52, rely=0.01, relwidth=0.1, relheight=0.05)
     # Size
@@ -396,6 +397,15 @@ def about_page():
     ressources_label_link2.place(relx=0.115, rely=0.85, relwidth=0.8, relheight=0.06)
 
 
+def CreateToolTip(widget, text):
+    toolTip = ToolTip(widget)
+    def enter(event):
+        toolTip.showtip(text)
+    def leave(event):
+        toolTip.hidetip()
+    widget.bind('<Enter>', enter)
+    widget.bind('<Leave>', leave)
+
 def main():
     # Blank spaces workaround to get the title centered as it depends on the OS
     root.title(' ' * 100 + 'Tents Puzzle')
@@ -453,8 +463,12 @@ if __name__ == "__main__":
     game_id = tk.Entry(page, font=12)
     game_id.insert(0, "Enter here...")
 
-    game_id_label = tk.Label(page, text="Path/ID: ", fg='white', bg='#836dd2',
-                             font=('Roboto', '10', 'bold'))
+    game_id_label = tk.Label(page, text="ⓘ Path/ID: ", fg='white', bg='#836dd2', font=('Roboto', '10', 'bold'))
+
+    CreateToolTip(game_id_label, text='Examples for the upload: \n'
+                                      'Path: "C:\path\gamefield.txt"\n'
+                                      'Game ID: "10x10:_eb_maeidaafadgahd_ec,2,3,1,3,1,2,3,1,0,4,1,3,2,2,2,3,2,2,2,1"')
+
     size_label = tk.Label(page, text="Size: ", fg='white', bg='#836dd2',
                           font=('Roboto', '10', 'bold'))
     difficulty_label = tk.Label(page, text="Difficulty: ", fg='white', bg='#836dd2',
