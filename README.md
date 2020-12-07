@@ -5,8 +5,16 @@
 Building a solver for the puzzle **_Tents_** by encoding it as a SAT problem.
 
 ##### Instructions:
+To start the GUI, simply run the "main.py" file.
 File "game.py" contains methods to read and solve game-fields.
-
+The read-me file additionally entails a full documentation on how to run the code and the individual functions per console.
+##### Disclosure:
+All bonus tasks as well as the main task were fully integrated.
+We implemented and compared different encoding strategies with different SAT solvers.
+In particular, we implemented the binomial coding, binary coding, and sequential coding. We found the
+sequential coding is by far the fastest and most powerful coding strategy, especially with increasing field sizes. 
+To fully appreciate the incredible speed we suggest to call/test the function per console to prevent the GUI bottleneck, 
+although it still performs extremely well with the GUI, even on larger fields.
 ##### `Reading in the game-field:`
  ```python
 from Assignment_one.game import GameEncoderBinomial
