@@ -310,7 +310,14 @@ class GameEncoder(ABC):
             return r
 
         tree_unique = [exactly_one(links_to(tree)) for tree in self.tree_pos_to_id.values()]
-        tent_unique = [at_most_one(links_to(tent)) for tent in self.tent_pos_to_id.values()]
+        # tent_unique = [at_most_one(links_to(tent)) for tent in self.tent_pos_to_id.values()]
+        tent_unique = []
+        for tent in self.tent_pos_to_id.values():
+            t = exactly_one(links_to(tent))
+            for c in t:
+                c.append(-tent)
+            tent_unique.append(t)
+
         # Concatenate
         clauses = list(chain(*(clauses_link + tree_unique + tent_unique)))
 
