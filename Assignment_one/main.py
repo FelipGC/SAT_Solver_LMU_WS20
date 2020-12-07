@@ -191,10 +191,12 @@ def display_game_field(difficulty_game, size_game, create_game=False, print_solu
     global camp_tile
     global grass_tile
     global camp_false_tile
+    global camp_missing_tile
 
     tree_tile = Image.open('assets/tree.png')
     camp_tile = Image.open('assets/camp.png')
     camp_false_tile = Image.open('assets/camp_false.png')
+    camp_missing_tile = Image.open('assets/camp_missing.png')
     grass_tile = Image.open('assets/grass.png')
 
     tree_tile = tree_tile.resize((tile_size, tile_size))
@@ -203,6 +205,8 @@ def display_game_field(difficulty_game, size_game, create_game=False, print_solu
     camp_tile = ImageTk.PhotoImage(camp_tile)
     camp_false_tile = camp_false_tile.resize((tile_size, tile_size))
     camp_false_tile = ImageTk.PhotoImage(camp_false_tile)
+    camp_missing_tile = camp_missing_tile.resize((tile_size, tile_size))
+    camp_missing_tile = ImageTk.PhotoImage(camp_missing_tile)
     grass_tile = grass_tile.resize((tile_size, tile_size))
     grass_tile = ImageTk.PhotoImage(grass_tile)
     tile_size = tile_size + border_size
@@ -321,6 +325,16 @@ def solve_page():
             b.button.destroy()
             del b
             button = tk.Button(page, image=camp_false_tile)
+            button.place(x=gui_pos[0], y=gui_pos[1])
+            pos_to_button[pos] = button
+    if len(user_solution) == 0:
+        return
+    for pos, b in pos_to_button.items():
+        if pos in game_field.tent_positions and pos not in user_solution:
+            gui_pos = b.gui_pos
+            b.button.destroy()
+            del b
+            button = tk.Button(page, image=camp_missing_tile)
             button.place(x=gui_pos[0], y=gui_pos[1])
             pos_to_button[pos] = button
 
@@ -473,7 +487,7 @@ if __name__ == "__main__":
     members_label = tk.Label(page, text="Members:", fg='#181a43', bg='#836dd2',
                              font=('Roboto', '16', 'bold'))
 
-    github_label = tk.Label(page, text="Github:", fg='#181a43', bg='#836dd2',
+    github_label = tk.Label(page, text="Github & ReadMe:", fg='#181a43', bg='#836dd2',
                             font=('Roboto', '16', 'bold'))
 
     ressources_label = tk.Label(page, text="Ressources:", fg='#181a43', bg='#836dd2',
@@ -510,6 +524,7 @@ if __name__ == "__main__":
     tree_tile = Image.open('assets/tree.png')
     camp_tile = Image.open('assets/camp.png')
     camp_false_tile = Image.open('assets/camp_false.png')
+    camp_missing_tile = Image.open('assets/camp_missing.png')
     grass_tile = Image.open('assets/grass.png')
 
     # Global gamefield variable

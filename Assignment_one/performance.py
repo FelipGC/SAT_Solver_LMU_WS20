@@ -58,6 +58,7 @@ def analyse_sat_solvers(games: [GameEncoder], show_png=False):
                            ignore_index=True)
     df.to_csv("data\\solver_analysis.csv", index=False)
     print("Saved data-frame as csv.")
+    plt.yscale('log')
     sns.barplot(x="Solver", y="Execution time [sec]", hue="Algorithm", data=df)
     plt.savefig("data\\solver_performance_analysis.png")
     if show_png:
