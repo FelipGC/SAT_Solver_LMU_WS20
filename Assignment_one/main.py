@@ -350,9 +350,17 @@ def stats_page():
     else:
         g1 = GameEncoderBinomial.from_text_file("tent-inputs\\gamefield.txt")
         g2 = GameEncoderSequential.from_text_file("tent-inputs\\gamefield.txt")
+
+        output_field = g1.output_field()
+        x, y = output_field.split("\n")[0].split(" ")[:2]
+        game_size = max(int(x), int(y))
+
         g3 = GameEncoderBinary.from_text_file("tent-inputs\\gamefield.txt")
 
-        analyse_sat_solvers([g1, g2, g3], show_png=True)
+        g_ = [g1, g2]
+        if game_size <= 15:
+            g_.append(g3)
+        analyse_sat_solvers(g_, show_png=True)
 
         load = Image.open("data/solver_performance_analysis.png")
         image = load.resize((640, 480))
@@ -360,20 +368,7 @@ def stats_page():
         img = tk.Label(page, image=render)
         img.image = render
         tk.Label(page, text='Encoding Statistics', fg='white', bg='#836dd2', font=('bold', 18)).place(x=200, y=0)
-        img.place(x=0, y=40)
-
-    """
-    analysis_image = Image.open('assets/stats.png')
-
-    analysis_image = analysis_image.resize((533, 400))
-
-
-    analysis_image = ImageTk.PhotoImage(analysis_image)
-
-    tk.Label(page, text='Encoding Statistics', fg='white',  bg='#836dd2', font=('bold', 18)).place(x=200, y=20)
-    tk.Label(page, image=analysis_image).place(x=35, y=100)
-
-    """
+        img.place(x=2, y=40)
 
 
 def about_page():
@@ -399,12 +394,16 @@ def about_page():
 
 def CreateToolTip(widget, text):
     toolTip = ToolTip(widget)
+
     def enter(event):
         toolTip.showtip(text)
+
     def leave(event):
         toolTip.hidetip()
+
     widget.bind('<Enter>', enter)
     widget.bind('<Leave>', leave)
+
 
 def main():
     # Blank spaces workaround to get the title centered as it depends on the OS
@@ -474,11 +473,11 @@ if __name__ == "__main__":
     difficulty_label = tk.Label(page, text="Difficulty: ", fg='white', bg='#836dd2',
                                 font=('Roboto', '10', 'bold'))
     easy_button = tk.Button(page, text="easy", bg='#836dd2', fg='white', font=('Roboto', '10', 'bold'),
-                            command=lambda: set_difficulty(0.2))
+                            command=lambda: set_difficulty(0.1))
     middle_button = tk.Button(page, text="middle", bg='#836dd2', fg='white', font=('Roboto', '10', 'bold'),
-                              command=lambda: set_difficulty(0.3))
+                              command=lambda: set_difficulty(0.2))
     hard_button = tk.Button(page, text="hard", bg='#836dd2', fg='white', font=('Roboto', '10', 'bold'),
-                            command=lambda: set_difficulty(0.5))
+                            command=lambda: set_difficulty(0.4))
 
     eight_button = tk.Button(page, text="8x8", bg='#836dd2', fg='white', font=('Roboto', '10', 'bold'),
                              command=lambda: set_size((8, 8)))

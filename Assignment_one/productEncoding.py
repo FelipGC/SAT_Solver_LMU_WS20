@@ -1,5 +1,7 @@
 import math, itertools, copy
 
+""" Experimental code. This encoding was not included in the final draft."""
+
 
 class ProductEncoding:
     def __init__(self, k, args, highestPrevVarIndex):
