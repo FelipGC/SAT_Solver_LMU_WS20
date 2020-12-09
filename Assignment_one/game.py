@@ -4,7 +4,7 @@ from itertools import combinations, chain, product, count
 from pysat.solvers import Cadical
 from pysat.formula import CNF
 from abc import ABC, abstractmethod
-from Assignment_one.binaryEncoding import BinaryAtMost_k_Of_n
+from binaryEncoding import BinaryAtMost_k_Of_n
 
 
 def remove_tents(input_game):
