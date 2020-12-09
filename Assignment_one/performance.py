@@ -10,7 +10,7 @@ import datetime
 from pysat.formula import CNF
 
 from Assignment_one import game
-from Assignment_one.game import GameEncoder, as_DIMACS_CNF
+from game import GameEncoder, as_DIMACS_CNF
 
 
 def combine_analysis_reports():

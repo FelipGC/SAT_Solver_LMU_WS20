@@ -1,9 +1,10 @@
 import tkinter as tk  # python3
-from Assignment_one.game import GameEncoderBinomial, GameEncoderSequential, GameEncoderBinary, write_to_text_file, \
+from game import GameEncoderBinomial, GameEncoderSequential, GameEncoderBinary, write_to_text_file, \
     remove_tents
-from Assignment_one.performance import analyse_sat_solvers, get_encoding_details
+from performance import analyse_sat_solvers, get_encoding_details
 from PIL import Image, ImageTk
-from Assignment_one.hover import ToolTip
+from hover import ToolTip
+
 
 class MyButton:
     def __init__(self, variable, tile_size, index_x, index_y, tick_x, tick_y):
@@ -34,7 +35,6 @@ class MyButton:
             self.button = tk.Button(page, image=camp_tile, command=my_call)
         self.button.place(x=x, y=y)
         pos_to_button[self.pos] = self
-
 
 
 def load_game_id(game_id_string):
