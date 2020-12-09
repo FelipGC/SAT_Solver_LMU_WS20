@@ -1,7 +1,4 @@
 import math, itertools, copy
-import sys
-
-sys.setrecursionlimit(2000)
 
 
 class ProductEncoding:
@@ -11,6 +8,7 @@ class ProductEncoding:
         self.k = k
         self.highestPrevVarIndex = highestPrevVarIndex
         self.newHighestVarIndex = 0
+        self.numberOfNewVars = 0
         self.P = []  # once initialized, will define domain for tuples representing args; every entry >= 2
         self.argsRepresentations = []  # once initialized, will contain a 1:1 mapping from arguments to k+1 tuples
         self.tuplesNumbering = []  # will contain a numbering of the k+1-tuples
@@ -109,10 +107,17 @@ class ProductEncoding:
         self.initTuplesNumbering()
         self.initA()
         self.renameA()
+        self.numberOfNewVars = self.newHighestVarIndex - self.highestPrevVarIndex
 
     def returnCNF(self):
         if (self.k == 0):
             return [[-x] for x in self.args]
+        if (self.k == 1):
+            res = []
+            for i in range(0, len(self.args) - 1):
+                for j in range(i + 1, len(self.args)):
+                    res.append([-self.args[i], -self.args[j]])
+            return res
         if (self.n == self.k + 1):
             return [[-x for x in self.args]]
         self.initialize()
@@ -133,9 +138,10 @@ class ProductEncoding:
             self.newHighestVarIndex = recursionCNF.newHighestVarIndex
         return res
 
+
 def exactly_k_Of_n(k, args, maxPrevVarIndex):
     productAtMost = ProductEncoding(k, args, maxPrevVarIndex)
     productAtLeast = ProductEncoding(len(args) - k, list(map(lambda x: (-1) * x, args)),
-                                     productAtMost.newHighestVarIndex)
+                                     productAtMost.numberOfNewVars + maxPrevVarIndex)
 
     return productAtMost.returnCNF() + productAtLeast.returnCNF()
