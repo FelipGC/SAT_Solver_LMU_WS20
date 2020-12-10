@@ -1,5 +1,4 @@
 import glob
-from itertools import chain
 
 import pandas as pd
 import seaborn as sns
@@ -7,10 +6,7 @@ import matplotlib.pyplot as plt
 
 import datetime
 
-from pysat.formula import CNF
-
-from Assignment_one import game
-from game import GameEncoder, as_DIMACS_CNF
+from game import *
 
 
 def combine_analysis_reports():
@@ -70,7 +66,7 @@ def analyse_sat_solvers(games: [GameEncoder], show_png=False):
             print(f"EFFICIENT={efficient}: Creating and solving multiple games, this might take a while...")
             paths = glob.glob("tent-inputs\\*.txt")
             self.efficient = efficient
-            self.games = [game.GameEncoderBinomial.from_text_file(path, efficient=self.efficient, verbose=False) for
+            self.games = [GameEncoderBinomial.from_text_file(path, efficient=self.efficient, verbose=False) for
                           path
                           in
                           paths]

@@ -4,6 +4,7 @@ from game import GameEncoderBinomial, GameEncoderSequential, GameEncoderBinary, 
 from performance import analyse_sat_solvers, get_encoding_details
 from PIL import Image, ImageTk
 from hover import ToolTip
+from sys import platform
 
 
 class MyButton:
@@ -348,14 +349,14 @@ def stats_page():
         tk.Label(page, text="Please start a new game!", fg='white', bg='#836dd2', font=('bold', 14)).place(x=180, y=60)
 
     else:
-        g1 = GameEncoderBinomial.from_text_file("tent-inputs\\gamefield.txt")
-        g2 = GameEncoderSequential.from_text_file("tent-inputs\\gamefield.txt")
+        g1 = GameEncoderBinomial.from_text_file("tent-inputs/gamefield.txt")
+        g2 = GameEncoderSequential.from_text_file("tent-inputs/gamefield.txt")
 
         output_field = g1.output_field()
         x, y = output_field.split("\n")[0].split(" ")[:2]
         game_size = max(int(x), int(y))
 
-        g3 = GameEncoderBinary.from_text_file("tent-inputs\\gamefield.txt")
+        g3 = GameEncoderBinary.from_text_file("tent-inputs/gamefield.txt")
 
         g_ = [g1, g2]
         if game_size <= 15:
@@ -368,7 +369,7 @@ def stats_page():
         img = tk.Label(page, image=render)
         img.image = render
         tk.Label(page, text='Encoding Statistics', fg='white', bg='#836dd2', font=('bold', 18)).place(x=200, y=0)
-        img.place(x=2, y=40)
+        img.place(x=1, y=40)
 
 
 def about_page():
@@ -407,8 +408,9 @@ def CreateToolTip(widget, text):
 
 def main():
     # Blank spaces workaround to get the title centered as it depends on the OS
-    root.title(' ' * 100 + 'Tents Puzzle')
-    root.iconbitmap("assets/game_icon.ico")
+    root.title('Tents Puzzle')
+    if platform == 'Windows':
+        root.iconbitmap("assets/game_icon.ico")
     root.resizable(False, False)
     root.mainloop()
 

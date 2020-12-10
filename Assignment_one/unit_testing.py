@@ -3,7 +3,7 @@ import unittest
 from pysat.formula import CNF
 from pysat.solvers import Cadical
 
-from Assignment_one import game
+from game import *
 import glob
 
 from Assignment_one.game import exactly_one, implies_all, as_DIMACS_CNF
@@ -25,29 +25,29 @@ class TestGame(unittest.TestCase):
         self.paths = glob.glob("tent-inputs\\*.txt")
         self.paths = [p for p in self.paths if "gamefield" not in p]
         # self.games = [game.GameEncoderBinomial.from_text_file(path, verbose=False) for path in self.paths]
-        self.games = [game.GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
+        self.games = [GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
         # self.games = [game.GameEncoderBinary.from_text_file(path, verbose=False) for path in self.paths]
 
     def test_randomness(self):
-        g1 = game.GameEncoderSequential.from_randomness((10, 10), tree_density=0.25)
+        g1 = GameEncoderSequential.from_randomness((10, 10), tree_density=0.25)
         g1.solve_sat_problem()
         solved, _ = g1.get_solution(g1.get_cnf_solution())
         self.assertTrue(solved)
 
     def test_adjacent(self):
-        adj_1 = game.get_adjacent_positions((0, 0), (8, 8))
+        adj_1 = get_adjacent_positions((0, 0), (8, 8))
         sol_1 = {(0, 1), (1, 0), (1, 1)}
 
-        adj_2 = game.get_adjacent_positions((17, 3), (23, 4))
+        adj_2 = get_adjacent_positions((17, 3), (23, 4))
         sol_2 = {(16, 3), (18, 3), (16, 2), (17, 2), (18, 3), (18, 2)}
 
-        adj_3 = game.get_adjacent_positions((4, 4), (7, 7))
+        adj_3 = get_adjacent_positions((4, 4), (7, 7))
         sol_3 = {(3, 3), (3, 4), (3, 5), (4, 3), (4, 5), (5, 3), (5, 4), (5, 5)}
 
-        adj_4 = game.get_adjacent_positions((4, 4), (7, 7), orthogonal=True)
+        adj_4 = get_adjacent_positions((4, 4), (7, 7), orthogonal=True)
         sol_4 = {(3, 4), (4, 3), (4, 5), (5, 4)}
 
-        adj_5 = game.get_adjacent_positions((4, 4), (7, 7), orthogonal=True)
+        adj_5 = get_adjacent_positions((4, 4), (7, 7), orthogonal=True)
         sol_5 = {(3, 3), (3, 4), (3, 5), (4, 3), (4, 5), (5, 3), (5, 4), (5, 5)}
 
         self.assertSetEqual(adj_1, sol_1)
@@ -59,7 +59,7 @@ class TestGame(unittest.TestCase):
     def test_reproduce_field(self):
         # Test does not check if tents are modeled correctly.
         # but if we can reproduce the original field encoding based on internal data.
-        games = [game.GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
+        games = [GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
         for index, g in enumerate(games):
             with open(self.paths[index], "r") as f:
                 original_field = f.read()
@@ -146,9 +146,9 @@ class TestGame(unittest.TestCase):
             self.assertTrue(g.check_solution(g.tent_positions))
 
     def test_check_equal_solution(self):
-        games1 = [game.GameEncoderBinomial.from_text_file(path, verbose=False) for path in self.paths]
-        games2 = [game.GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
-        games3 = [game.GameEncoderBinary.from_text_file(path, verbose=False) for path in self.paths]
+        games1 = [GameEncoderBinomial.from_text_file(path, verbose=False) for path in self.paths]
+        games2 = [GameEncoderSequential.from_text_file(path, verbose=False) for path in self.paths]
+        games3 = [GameEncoderBinary.from_text_file(path, verbose=False) for path in self.paths]
         for g1, g2, g3 in zip(games1, games2, games3):
             g1.solve_sat_problem()
             g2.solve_sat_problem()
