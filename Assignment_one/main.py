@@ -376,8 +376,8 @@ def about_page():
     clear_screen()
     # Names & Emails
     members_label.place(relx=0.35, rely=0, relwidth=0.3, relheight=0.075)
-    about_felipe_label.place(relx=0.1, rely=0.1, relwidth=0.3, relheight=0.070)
-    about_felipe_label2.place(relx=0.5, rely=0.1, relwidth=0.4, relheight=0.070)
+    about_felip_label.place(relx=0.1, rely=0.1, relwidth=0.3, relheight=0.070)
+    about_felip_label2.place(relx=0.5, rely=0.1, relwidth=0.4, relheight=0.070)
     about_julian_label.place(relx=0.1, rely=0.15, relwidth=0.3, relheight=0.070)
     about_julian_label2.place(relx=0.5, rely=0.15, relwidth=0.4, relheight=0.070)
     about_branislav_label.place(relx=0.1, rely=0.2, relwidth=0.3, relheight=0.070)
@@ -455,7 +455,7 @@ if __name__ == "__main__":
 
     greeting_1 = tk.Label(page, text="Welcome to the Tents Puzzle!", fg='white', bg='#836dd2',
                           font=('Roboto', '12', 'bold'))
-    greeting_2 = tk.Label(page, text="by Felipe, Julian & Branislav", fg='white', bg='#836dd2',
+    greeting_2 = tk.Label(page, text="by Felip, Julian & Branislav", fg='white', bg='#836dd2',
                           font=('Roboto', '10', 'bold'))
     greeting_1.place(relx=0.31, rely=0.45)
     greeting_2.place(relx=0.34, rely=0.5)
@@ -520,13 +520,13 @@ if __name__ == "__main__":
 
     about_julian_label = tk.Label(page, text="Julian Finkenzeller: ", fg='white', bg='#836dd2',
                                   font=('Roboto', '10', 'bold'))
-    about_felipe_label = tk.Label(page, text="Felip Guimerà Cuevas: ", fg='white', bg='#836dd2',
+    about_felip_label = tk.Label(page, text="Felip Guimerà Cuevas: ", fg='white', bg='#836dd2',
                                   font=('Roboto', '10', 'bold'))
     about_branislav_label = tk.Label(page, text="Branislav Blagojevic: ", fg='white', bg='#836dd2',
                                      font=('Roboto', '10', 'bold'))
     about_julian_label2 = tk.Label(page, text="Julian.Finkenzeller@campus.lmu.de", fg='#181a43', bg='#836dd2',
                                    font=('Roboto', '10', 'bold'))
-    about_felipe_label2 = tk.Label(page, text="Felip.Guimera@campus.lmu.de", fg='#181a43', bg='#836dd2',
+    about_felip_label2 = tk.Label(page, text="Felip.Guimera@campus.lmu.de", fg='#181a43', bg='#836dd2',
                                    font=('Roboto', '10', 'bold'))
     about_branislav_label2 = tk.Label(page, text="B.Blagojevic@campus.lmu.de", fg='#181a43', bg='#836dd2',
                                       font=('Roboto', '10', 'bold'))
