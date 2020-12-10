@@ -15,6 +15,11 @@ In particular, we implemented the binomial coding, binary coding, and sequential
 sequential coding is by far the fastest and most powerful coding strategy, especially with increasing field sizes. 
 To fully appreciate the incredible speed we suggest to call/test the function per console to prevent the GUI bottleneck, 
 although it still performs extremely well with the GUI, even on larger fields.
+
+##### GUI Infos:
+GUI is optimized for windows. Also tested and working on Linux (When you load the Stats Page you have to close the external PNG windows,
+as Linux displays is per default )
+
 ##### `Reading in the game-field:`
  ```python
 from Assignment_one.game import GameEncoderBinomial

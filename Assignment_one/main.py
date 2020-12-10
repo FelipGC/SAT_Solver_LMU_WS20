@@ -426,23 +426,23 @@ if __name__ == "__main__":
     menu = tk.Frame(root, bg='#181a43', bd=5)
     menu.place(relx=0.1, rely=0.025, relwidth=0.8, relheight=0.06)
     # Menu Bar
-    newgame_button = tk.Button(menu, text="New Game", bg='#836dd2', fg='white', font=('Roboto', '10', 'bold'),
+    newgame_button = tk.Button(menu, text="New Game", bg='#836dd2', fg='white', font=('Roboto', '9', 'bold'),
                                command=lambda: new_game_page())
     newgame_button.place(relx=0.01, rely=0.1, relwidth=0.15, relheight=0.8)
 
-    solve_button = tk.Button(menu, text="Solve Puzzle", bg='#836dd2', fg='white', font=('Roboto', '10', 'bold'),
+    solve_button = tk.Button(menu, text="Solve Puzzle", bg='#836dd2', fg='white', font=('Roboto', '9', 'bold'),
                              command=lambda: solve_page())
     solve_button.place(relx=0.2175, rely=0.1, relwidth=0.15, relheight=0.8)
 
-    stats_button = tk.Button(menu, text="Stats", bg='#836dd2', fg='white', font=('Roboto', '10', 'bold'),
+    stats_button = tk.Button(menu, text="Stats", bg='#836dd2', fg='white', font=('Roboto', '9', 'bold'),
                              command=lambda: stats_page())
     stats_button.place(relx=0.425, rely=0.1, relwidth=0.15, relheight=0.8)
 
-    about_button = tk.Button(menu, text="About Us", bg='#836dd2', fg='white', font=('Roboto', '10', 'bold'),
+    about_button = tk.Button(menu, text="About Us", bg='#836dd2', fg='white', font=('Roboto', '9', 'bold'),
                              command=lambda: about_page())
     about_button.place(relx=0.6325, rely=0.1, relwidth=0.15, relheight=0.8)
 
-    exit_button = tk.Button(menu, text="Exit", bg='#836dd2', fg='white', font=('Roboto', '10', 'bold'), command=exit)
+    exit_button = tk.Button(menu, text="Exit", bg='#836dd2', fg='white', font=('Roboto', '9', 'bold'), command=exit)
     exit_button.place(relx=0.84, rely=0.1, relwidth=0.15, relheight=0.8)
 
     # Page
